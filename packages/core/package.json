@@ -1,0 +1,50 @@
+{
+  "name": "@emperor/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "emperor-agent-acp": "./dist/bin/emperor-agent-acp.mjs"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./api": "./src/public/api.ts",
+    "./runtime-contract": "./src/public/runtime-contract.ts",
+    "./host-capabilities": "./src/public/host-capabilities.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && npm run build:acp",
+    "build:acp": "node ../../scripts/build-acp.mjs",
+    "headless:acp": "npm run build:acp && node dist/bin/emperor-agent-acp.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src --max-warnings=0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/turndown": "^5.0.5",
+    "esbuild": "0.21.5",
+    "eslint": "^9.39.4",
+    "fast-check": "^4.10.2",
+    "typescript-eslint": "^8.62.1",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@agentclientprotocol/sdk": "1.2.1",
+    "@anthropic-ai/sdk": "^0.106.0",
+    "@earendil-works/pi-ai": "^0.82.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "chokidar": "^4.0.3",
+    "croner": "^10.0.1",
+    "eventsource-parser": "^3.1.1",
+    "jsonrepair": "^3.14.1",
+    "openai": "^6.45.0",
+    "smol-toml": "^1.7.0",
+    "turndown": "^7.2.1",
+    "typescript": "5.9.3",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  }
+}
