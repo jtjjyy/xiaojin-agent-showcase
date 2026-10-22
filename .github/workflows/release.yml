@@ -1,0 +1,470 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      stable_tag:
+        description: Existing annotated Stable tag to rehearse or publish
+        required: true
+        type: string
+      publish:
+        description: Publish after all candidates, receipts and attestations pass
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: stable-release-${{ inputs.stable_tag }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release-policy:
+    name: Validate explicit Stable release request
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.policy.outputs.tag }}
+      commit: ${{ steps.policy.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            desktop/package-lock.json
+      - id: policy
+        name: Require an annotated Stable tag on the default branch
+        shell: bash
+        env:
+          STABLE_TAG: ${{ inputs.stable_tag }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [[ ! "$STABLE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Stable tag must be a release tag without a prerelease suffix" >&2
+            exit 1
+          fi
+          git rev-parse --verify "refs/tags/$STABLE_TAG" >/dev/null
+          if [[ "$(git cat-file -t "refs/tags/$STABLE_TAG")" != tag ]]; then
+            echo "Stable tag must be annotated: $STABLE_TAG" >&2
+            exit 1
+          fi
+          commit="$(git rev-parse "refs/tags/$STABLE_TAG^{commit}")"
+          version="$(git show "$commit:desktop/package.json" 2>/dev/null | node -e "let value=''; process.stdin.on('data', chunk => value += chunk).on('end', () => process.stdout.write(JSON.parse(value).version))")"
+          if [[ "$STABLE_TAG" != "v$version" ]]; then
+            echo "Stable tag $STABLE_TAG does not match desktop version $version" >&2
+            exit 1
+          fi
+          git fetch --no-tags origin "$DEFAULT_BRANCH"
+          git merge-base --is-ancestor "$commit" "origin/$DEFAULT_BRANCH"
+          echo "tag=$STABLE_TAG" >>"$GITHUB_OUTPUT"
+          echo "commit=$commit" >>"$GITHUB_OUTPUT"
+
+  macos-candidate:
+    name: macOS candidate (${{ matrix.arch }})
+    needs: release-policy
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x64
+    env:
+      EMPEROR_RELEASE_TARGET: mac
+      EMPEROR_RELEASE_TAG: ${{ needs.release-policy.outputs.tag }}
+      EMPEROR_RELEASE_COMMIT: ${{ needs.release-policy.outputs.commit }}
+      ELECTRON_ARCH: ${{ matrix.arch }}
+      CSC_LINK: ${{ secrets.MACOS_CERTIFICATE }}
+      CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+      APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-policy.outputs.tag }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            desktop/package-lock.json
+      - name: Require Apple signing and notarization credentials
+        shell: bash
+        run: |
+          for name in CSC_LINK CSC_KEY_PASSWORD APPLE_API_KEY_BASE64 APPLE_API_KEY_ID APPLE_API_ISSUER APPLE_TEAM_ID; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required macOS release credential: $name" >&2
+              exit 1
+            fi
+          done
+          key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+          printf '%s' "$APPLE_API_KEY_BASE64" | base64 --decode >"$key_path"
+          chmod 600 "$key_path"
+          echo "APPLE_API_KEY=$key_path" >>"$GITHUB_ENV"
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm --prefix desktop ci
+      - name: Quality gate
+        run: make check
+      - name: Build signed and notarized candidate
+        run: scripts/build_desktop_release.sh
+      - name: Verify signature, notarization, DMG and smoke
+        run: scripts/verify-macos-release.sh "${{ matrix.arch }}"
+      - name: Upload macOS candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}-candidate
+          path: |
+            desktop/dist/*.dmg
+            desktop/dist/*.zip
+            desktop/dist/SHA256SUMS-macos-${{ matrix.arch }}.txt
+            desktop/dist/packaged-smoke/darwin-${{ matrix.arch }}.json
+            desktop/dist/release-receipts/macos-${{ matrix.arch }}.json
+          if-no-files-found: error
+          retention-days: 7
+
+  windows-candidate:
+    name: Windows candidate (x64)
+    needs: release-policy
+    runs-on: windows-2022
+    env:
+      EMPEROR_RELEASE_TARGET: win
+      EMPEROR_RELEASE_TAG: ${{ needs.release-policy.outputs.tag }}
+      EMPEROR_RELEASE_COMMIT: ${{ needs.release-policy.outputs.commit }}
+      WINDOWS_SIGNING_ENDPOINT: ${{ secrets.WINDOWS_SIGNING_ENDPOINT }}
+      WINDOWS_SIGNING_PROFILE: ${{ secrets.WINDOWS_SIGNING_PROFILE }}
+      WINDOWS_SIGNING_ACCOUNT: ${{ secrets.WINDOWS_SIGNING_ACCOUNT }}
+      WINDOWS_SIGNING_PUBLISHER: ${{ secrets.WINDOWS_SIGNING_PUBLISHER }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-policy.outputs.tag }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            desktop/package-lock.json
+      - name: Require Azure Artifact Signing credentials
+        shell: pwsh
+        run: |
+          $required = @(
+            'WINDOWS_SIGNING_ENDPOINT',
+            'WINDOWS_SIGNING_PROFILE',
+            'WINDOWS_SIGNING_ACCOUNT',
+            'WINDOWS_SIGNING_PUBLISHER',
+            'AZURE_TENANT_ID',
+            'AZURE_CLIENT_ID',
+            'AZURE_CLIENT_SECRET'
+          )
+          foreach ($name in $required) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
+              throw "Missing required Windows release credential: $name"
+            }
+          }
+      - name: Install dependencies
+        shell: bash
+        run: |
+          npm ci
+          npm --prefix desktop ci
+      - name: Quality gate
+        shell: bash
+        run: ./scripts/check.sh
+      - name: Build signed NSIS candidate
+        shell: pwsh
+        run: |
+          npm --prefix desktop run build
+          Push-Location desktop
+          npx electron-builder --config electron-builder.release.cjs --win nsis --x64 --publish never
+          Pop-Location
+      - name: Verify Authenticode, install, smoke and uninstall
+        shell: pwsh
+        run: ./scripts/verify-windows-release.ps1
+      - name: Upload Windows candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-candidate
+          path: |
+            desktop/dist/*.exe
+            desktop/dist/SHA256SUMS-windows-x64.txt
+            desktop/dist/packaged-smoke/win32-x64.json
+            desktop/dist/release-receipts/windows-x64.json
+          if-no-files-found: error
+          retention-days: 7
+
+  linux-build:
+    name: Linux candidate build (x64)
+    needs: release-policy
+    runs-on: ubuntu-22.04
+    env:
+      EMPEROR_RELEASE_TARGET: linux
+      EMPEROR_RELEASE_TAG: ${{ needs.release-policy.outputs.tag }}
+      EMPEROR_RELEASE_COMMIT: ${{ needs.release-policy.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-policy.outputs.tag }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            desktop/package-lock.json
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm --prefix desktop ci
+      - name: Quality gate
+        run: make check
+      - name: Build AppImage and DEB candidates
+        run: |
+          npm --prefix desktop run build
+          cd desktop
+          npx electron-builder --config electron-builder.release.cjs --linux AppImage deb --x64 --publish never
+      - name: Verify package metadata and create checksums
+        run: scripts/verify-linux-release.sh prepare
+      - name: Upload Linux candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64-candidate
+          path: |
+            desktop/dist/*.AppImage
+            desktop/dist/*.deb
+            desktop/dist/SHA256SUMS-linux-x64.txt
+            desktop/dist/release-receipts/linux-x64-build.json
+          if-no-files-found: error
+          retention-days: 7
+
+  release-aggregate:
+    name: Verify and attest trusted release bundle
+    needs:
+      [
+        release-policy,
+        macos-candidate,
+        windows-candidate,
+        linux-build,
+        linux-smoke,
+      ]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-policy.outputs.tag }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            desktop/package-lock.json
+      - name: Install SBOM inputs
+        run: |
+          npm ci
+          npm --prefix desktop ci
+      - name: Download platform candidates
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-candidate'
+          path: release-inputs
+          merge-multiple: true
+      - name: Download Linux lifecycle receipts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: 'linux-*-receipts'
+          path: release-inputs
+          merge-multiple: true
+      - name: Assemble fail-closed release bundle
+        run: >-
+          node scripts/assemble-release-bundle.mjs
+          release-inputs release-bundle
+          "${{ needs.release-policy.outputs.tag }}"
+          "${{ needs.release-policy.outputs.commit }}"
+      - name: Generate reproducible CycloneDX SBOM
+        run: |
+          mkdir -p release-sbom
+          npx --yes @cyclonedx/cyclonedx-npm@6.0.0 \
+            --package-lock-only \
+            --output-reproducible \
+            --spec-version 1.6 \
+            --output-format JSON \
+            --validate \
+            --output-file release-sbom/core.cdx.json
+          npx --yes @cyclonedx/cyclonedx-npm@6.0.0 \
+            --package-lock-only \
+            --ignore-npm-errors \
+            --output-reproducible \
+            --spec-version 1.6 \
+            --output-format JSON \
+            --validate \
+            --output-file release-sbom/desktop.cdx.json \
+            desktop/package.json
+          node scripts/merge-cyclonedx-sboms.mjs \
+            release-sbom/core.cdx.json \
+            release-sbom/desktop.cdx.json \
+            "release-bundle/emperor-agent-${{ needs.release-policy.outputs.tag }}.cdx.json"
+          (
+            cd release-bundle
+            find . -maxdepth 1 -type f \
+              ! -name 'SHA256SUMS.txt' \
+              -printf '%f\n' | LC_ALL=C sort | while IFS= read -r file; do
+                sha256sum "$file"
+              done >SHA256SUMS.txt
+            sha256sum --check SHA256SUMS.txt
+          )
+      - name: Attest release provenance
+        uses: actions/attest@v4
+        with:
+          subject-checksums: release-bundle/SHA256SUMS.txt
+      - name: Attest artifact SBOM
+        uses: actions/attest@v4
+        with:
+          subject-checksums: release-bundle/ARTIFACT-SHA256SUMS.txt
+          sbom-path: release-bundle/emperor-agent-${{ needs.release-policy.outputs.tag }}.cdx.json
+      - name: Verify uploaded attestations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          while read -r _ file; do
+            file="${file#\*}"
+            for attempt in 1 2 3 4 5; do
+              if gh attestation verify "release-bundle/$file" \
+                --repo "$GITHUB_REPOSITORY" \
+                --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+                --source-ref "$GITHUB_REF"; then
+                break
+              fi
+              if [[ "$attempt" == 5 ]]; then exit 1; fi
+              sleep $((attempt * 3))
+            done
+          done <release-bundle/SHA256SUMS.txt
+          while read -r _ file; do
+            file="${file#\*}"
+            for attempt in 1 2 3 4 5; do
+              if gh attestation verify "release-bundle/$file" \
+                --repo "$GITHUB_REPOSITORY" \
+                --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+                --source-ref "$GITHUB_REF" \
+                --predicate-type 'https://cyclonedx.org/bom'; then
+                break
+              fi
+              if [[ "$attempt" == 5 ]]; then exit 1; fi
+              sleep $((attempt * 3))
+            done
+          done <release-bundle/ARTIFACT-SHA256SUMS.txt
+      - name: Upload attested release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: trusted-release-bundle
+          path: release-bundle
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-release:
+    name: Publish atomic GitHub Release
+    needs: [release-policy, release-aggregate]
+    if: inputs.publish == true && vars.EMPEROR_STABLE_RELEASE_ENABLED == 'true'
+    environment: stable-release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      attestations: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-policy.outputs.tag }}
+          fetch-depth: 1
+      - name: Download attested release bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: trusted-release-bundle
+          path: release-bundle
+      - name: Reverify checksums and provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          (cd release-bundle && sha256sum --check SHA256SUMS.txt)
+          while read -r _ file; do
+            file="${file#\*}"
+            gh attestation verify "release-bundle/$file" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+              --source-ref "$GITHUB_REF"
+          done <release-bundle/SHA256SUMS.txt
+          while read -r _ file; do
+            file="${file#\*}"
+            gh attestation verify "release-bundle/$file" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+              --source-ref "$GITHUB_REF" \
+              --predicate-type 'https://cyclonedx.org/bom'
+          done <release-bundle/ARTIFACT-SHA256SUMS.txt
+      - name: Create draft, verify assets and publish atomically
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EMPEROR_RELEASE_TAG: ${{ needs.release-policy.outputs.tag }}
+          EMPEROR_RELEASE_COMMIT: ${{ needs.release-policy.outputs.commit }}
+        run: scripts/publish-release.sh release-bundle
+
+  linux-smoke:
+    name: Linux smoke (${{ matrix.version }})
+    needs: [release-policy, linux-build]
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            version: '22.04'
+          - runner: ubuntu-24.04
+            version: '24.04'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-policy.outputs.tag }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Download Linux candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-x64-candidate
+          path: desktop/dist
+      - name: Install, smoke and remove AppImage and DEB
+        env:
+          EMPEROR_RELEASE_TAG: ${{ needs.release-policy.outputs.tag }}
+          EMPEROR_RELEASE_COMMIT: ${{ needs.release-policy.outputs.commit }}
+        run: scripts/verify-linux-release.sh smoke
+      - name: Upload Linux smoke receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.version }}-receipts
+          path: desktop/dist/linux-receipts/*.json
+          if-no-files-found: error
+          retention-days: 7

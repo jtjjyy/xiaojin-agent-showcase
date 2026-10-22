@@ -1,0 +1,77 @@
+name: ci
+
+on:
+  # 当前项目暂停验证，仅在维护者明确恢复后手动执行。
+  workflow_dispatch:
+
+jobs:
+  ts-desktop:
+    name: ts-desktop (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    # Windows is not a supported platform: its job still runs and reports
+    # (POSIX file modes and paths fail there), but does not fail the run.
+    continue-on-error: ${{ matrix.os == 'windows-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            desktop/package-lock.json
+      # node-gyp (the node-pty rebuild while packaging) still imports
+      # distutils, which Python 3.12 removed.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install core dependencies
+        run: npm ci
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm ci
+      - name: Whitespace / conflict markers
+        shell: bash
+        run: |
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            git diff --check HEAD~1 HEAD
+          else
+            git diff --check
+          fi
+      - name: Core tests
+        run: npm test --workspace @emperor/core
+      - name: Core typecheck
+        run: npm run typecheck --workspace @emperor/core
+      - name: Core lint
+        run: npm run lint --workspace @emperor/core
+      - name: Desktop tests
+        working-directory: desktop
+        run: npm run test
+      - name: Browser extension tests
+        shell: bash
+        run: node --test desktop/extension/tests/*.test.js
+      - name: macOS helper Swift tests
+        if: runner.os == 'macOS'
+        working-directory: desktop/native/macos
+        run: swift test
+      - name: Desktop test typecheck
+        working-directory: desktop
+        run: npm run typecheck:test
+      - name: Desktop typecheck
+        working-directory: desktop
+        run: npm run typecheck
+      - name: Desktop lint
+        working-directory: desktop
+        run: npm run lint
+      - name: Desktop build
+        working-directory: desktop
+        run: npm run build
+      - name: Package dry run
+        working-directory: desktop
+        run: npm run package:verify
