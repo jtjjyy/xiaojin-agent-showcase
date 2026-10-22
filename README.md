@@ -1,6 +1,5 @@
 <div align="center">
 
-<img src="assets/generated/readme-product-hero.png" alt="小金 Agent 桌面工作台" width="860" />
 
 # 小金 Agent · XiaoJin Agent
 
