@@ -1,0 +1,90 @@
+appId: com.emperor.agent.desktop
+productName: XiaoJin Agent
+
+directories:
+  output: dist
+
+beforePack: scripts/before-pack.cjs
+afterPack: scripts/after-pack.cjs
+afterSign: scripts/after-sign.cjs
+
+files:
+  - out/**/*
+  - '!out/native/**/*'
+  - package.json
+  - '!node_modules{,/**/*}'
+  - node_modules/typescript/package.json
+  - node_modules/typescript/lib/typescript.js
+  - node_modules/node-pty/package.json
+  - node_modules/node-pty/lib/**/*.js
+  - '!node_modules/node-pty/lib/**/*.test.js'
+  - node_modules/node-pty/prebuilds/**/*
+  - node_modules/node-pty/build/Release/**/*
+
+extraResources:
+  - from: build/icon.png
+    to: icon.png
+  - from: ../templates
+    to: runtime-defaults/templates
+    filter:
+      - agent/persona.md
+      - init/MEMORY.md
+      - init/USER.md
+  - from: ../skills
+    to: runtime-defaults/skills
+  - from: ../assets/desktop-pet
+    to: runtime-defaults/assets/desktop-pet
+  - from: ../config/examples/model_config.example.json
+    to: runtime-defaults/model_config.example.json
+  - from: ../config/examples/mcp_config.example.json
+    to: runtime-defaults/mcp_config.example.json
+  - from: ../.env.example
+    to: runtime-defaults/.env.example
+  - from: build/runtime-defaults-manifest.json
+    to: runtime-defaults/runtime-manifest.json
+  - from: src/pet
+    to: desktop-pet
+    filter:
+      - renderer.html
+      - renderer.css
+      - renderer.js
+      - preload.js
+      - event-mapper.js
+      - idle-scenes.js
+
+asar: true
+asarUnpack:
+  - node_modules/node-pty/prebuilds/**/*
+  - node_modules/node-pty/build/Release/**/*
+
+mac:
+  extraFiles:
+    - from: out/native/Emperor Computer Helper.app
+      to: Library/Helpers/Emperor Computer Helper.app
+    - from: out/native/emperor-nm-host
+      to: Library/Helpers/emperor-nm-host
+  extraResources:
+    - from: out/native/credential-auth
+      to: native/credential-auth
+  target:
+    - dmg
+    - zip
+  category: public.app-category.productivity
+  icon: build/icon.png
+  artifactName: XiaoJin-Agent-${version}-mac-${arch}.${ext}
+
+win:
+  target:
+    - nsis
+  artifactName: XiaoJin-Agent-${version}-win-${arch}.${ext}
+
+linux:
+  target:
+    - AppImage
+  executableName: emperor-agent
+  icon: build/icon.png
+  category: Utility
+  artifactName: XiaoJin-Agent-${version}-linux-${arch}.${ext}
+
+# Release builds host CoreApi in the Electron main process and read signed
+# runtime defaults directly from the application resources directory.

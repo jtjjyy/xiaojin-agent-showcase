@@ -1,0 +1,9 @@
+/* Global pane-resize drag state (applied by composables/useResizable.ts).
+   The workspace panes themselves carry scoped styles since M4a. */
+.workspace-resizing {
+  /* audit-allow: important — global drag state must override every child's own
+     cursor/selection while a pane resize gesture is active. */
+  cursor: col-resize !important;
+  /* audit-allow: important */
+  user-select: none !important;
+}

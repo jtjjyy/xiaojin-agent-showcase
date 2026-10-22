@@ -1,0 +1,355 @@
+import { describe, it, expect } from 'vitest'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// 样式收敛审计(PLAN-20260721-THEME-THINK):固化颜色/裸值收敛成果,防回归。
+// 白名单:theme/*.css 是 token 定义文件,自身不受这些规则约束。
+
+// fileURLToPath,而不是 new URL(...).pathname:后者在 Windows 上留下前导斜杠,
+// join 之后变成 D:\D:\... 这种无效路径,整个套件直接 scandir 报错而不是跑断言。
+const SRC = fileURLToPath(new URL('.', import.meta.url))
+
+function collect(dir: string, exts: string[]): string[] {
+  const out: string[] = []
+  for (const entry of readdirSync(join(SRC, dir))) {
+    // 相对路径统一用 '/' 分隔:下面的 baseline 表按 'styles/a11y.css' 这样的
+    // POSIX 键查找,Windows 的 '\' 会让每次查找都落空、静默退回基线 0。
+    const rel = join(dir, entry).replaceAll('\\', '/')
+    const abs = join(SRC, rel)
+    if (statSync(abs).isDirectory()) {
+      out.push(...collect(rel, exts))
+    } else if (exts.some((e) => entry.endsWith(e))) {
+      out.push(rel)
+    }
+  }
+  return out
+}
+
+const STYLE_FILES = collect('styles', ['.css'])
+const THEME_FILES = collect('theme', ['.css'])
+const VUE_FILES = collect('components', ['.vue'])
+const SCANNED = [...STYLE_FILES, ...THEME_FILES, ...VUE_FILES]
+
+function read(rel: string): string {
+  return readFileSync(join(SRC, rel), 'utf-8')
+}
+
+function styleBlocks(rel: string): string {
+  return [...read(rel).matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
+    .map((m) => m[1])
+    .join('\n')
+}
+
+describe('style audit: color convergence', () => {
+  it('no bare hex colors outside theme/*.css', () => {
+    const offenders: string[] = []
+    for (const rel of SCANNED) {
+      const hits = read(rel).match(
+        /#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?(?:[0-9a-fA-F]{2})?\b/g,
+      )
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no legacy alias utility classes (text-muted, border-line, bg-paper, ...)', () => {
+    const aliasClass =
+      /\b(?:text|bg|border|ring|ring-offset|shadow|divide|placeholder)-(?:muted|ink|line|paper|paper2|seal|jade|amber)\b/g
+    const offenders: string[] = []
+    for (const rel of SCANNED) {
+      const hits = read(rel).match(aliasClass)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no var(--paper/--ink/--seal/--jade/--amber/--muted/--line/--paper-2) consumption', () => {
+    const aliasVar =
+      /var\(--(?:paper|paper-2|ink|muted|line|seal|jade|amber)\b/g
+    const offenders: string[] = []
+    for (const rel of SCANNED) {
+      const hits = read(rel).match(aliasVar)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no var(--fg-muted/--fg-subtle) consumption (use fg / text-secondary / text-tertiary)', () => {
+    // grok 式文本层级已收敛:次级/三级文字一律 rgb(var(--fg) / var(--text-*)),
+    // 实体 --fg-muted/--fg-subtle 已删除,禁止回流。
+    const dead = /var\(--fg-(?:muted|subtle)\b/g
+    const offenders: string[] = []
+    for (const rel of SCANNED) {
+      const hits = read(rel).match(dead)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no legacy text-fg-muted / text-fg-subtle Tailwind classes (use text-secondary/text-tertiary)', () => {
+    const deadClass = /\b(?:text|bg|border)-fg-(?:muted|subtle)\b/g
+    const offenders: string[] = []
+    for (const rel of SCANNED) {
+      const hits = read(rel).match(deadClass)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+})
+
+describe('style audit: bare-value convergence (vue scoped)', () => {
+  it('no bare px border-radius except 0/2px/999px in <style> blocks', () => {
+    const re = /border-radius:\s*(?!0\b|2px\b|999px\b)\d+px/g
+    const offenders: string[] = []
+    for (const rel of VUE_FILES) {
+      const hits = styleBlocks(rel).match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no box-shadow with hardcoded rgb(0 0 0 / *) in <style> blocks', () => {
+    const re = /box-shadow:[^;]*rgb\(0 0 0/g
+    const offenders: string[] = []
+    for (const rel of VUE_FILES) {
+      const hits = styleBlocks(rel).match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no bare px font-size in the 9-15px range in <style> blocks', () => {
+    const re = /font-size:\s*(?:9|1[0-5])px\b/g
+    const offenders: string[] = []
+    for (const rel of VUE_FILES) {
+      const hits = styleBlocks(rel).match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no text-[Npx] arbitrary font-size classes in templates', () => {
+    const re = /text-\[(?:9|1[0-5])px\]/g
+    const offenders: string[] = []
+    for (const rel of VUE_FILES) {
+      const hits = read(rel).match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+})
+
+describe('style audit: bare-value convergence (styles/)', () => {
+  it('no bare px border-radius except 0/999px', () => {
+    const re = /border-radius:\s*(?!0\b|999px\b)\d+px/g
+    const offenders: string[] = []
+    for (const rel of STYLE_FILES) {
+      const hits = read(rel).match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no box-shadow with hardcoded rgb(0 0 0 / *)', () => {
+    const re = /box-shadow:[^;]*rgb\(0 0 0/g
+    const offenders: string[] = []
+    for (const rel of STYLE_FILES) {
+      const hits = read(rel).match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no bare px font-size in the 9-15px range', () => {
+    const re = /font-size:\s*(?:9|1[0-5])px\b/g
+    const offenders: string[] = []
+    for (const rel of STYLE_FILES) {
+      const hits = read(rel).match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no converged-range rounded-[Nrem]/[Npx] arbitrary radius classes', () => {
+    // Δ≤2px 的值必须归位到 var(--radius-*);偏差更大的保留值登记于此白名单
+    // (旧设置视图删除后已清空,只许保持为空或继续删减)。
+    const KEEP = new Set<string>()
+    const re = /rounded-\[(?!var\()[0-9.]+(?:rem|px)\]/g
+    const offenders: string[] = []
+    for (const rel of STYLE_FILES) {
+      const hits = (read(rel).match(re) ?? []).filter((h) => !KEEP.has(h))
+      if (hits.length)
+        offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+})
+
+// ── 统一性收敛(APPLE-UI-OVERHAUL)──────────────────────────────────────────
+// 目的:让样式系统"高度规范、统一、可控",并防止再度失控。三类规则:
+//   HARD  —— 现已为零,直接禁绝(z-index / blur / 布局属性过渡 / token 重定义)。
+//   RATCHET —— 存量较大,记录每文件基线,只许降不许升,分阶段压到白名单-only。
+// 材质 blur 一律经 var(--material-*/--glass-*)token;z-index 一律 var(--z-*)。
+
+describe('style audit: unified tokens (hard rules, must stay zero)', () => {
+  it('no magic z-index (use var(--z-*))', () => {
+    const re = /z-index:\s*(?!var\(--z-)-?\d+/g
+    const offenders: string[] = []
+    for (const rel of SCANNED) {
+      const hits = read(rel).match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no one-off backdrop blur >= 4px (use material tiers)', () => {
+    // 小数值(1-3px)是毛发级聚焦/柔光,合法;≥4px 必须走材质 token。
+    // 仅扫描样式(styles/*.css + SFC <style> 块),不含 JS/TS 字符串。
+    const re = /blur\((?!var\()([4-9]|\d{2,})(?:\.\d+)?px\)/g
+    const offenders: string[] = []
+    const targets = [
+      ...STYLE_FILES.map((rel) => [rel, read(rel)] as const),
+      ...VUE_FILES.map((rel) => [rel, styleBlocks(rel)] as const),
+    ]
+    for (const [rel, text] of targets) {
+      const hits = text.match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no layout-property transitions (animate transform/opacity only)', () => {
+    const re =
+      /transition:[^;{}]*\b(?:width|height|padding|padding-[a-z]+|margin|margin-[a-z]+|top|left|right|bottom|inset)\b[^;{}]*\d(?:ms|s)\b/g
+    const offenders: string[] = []
+    for (const rel of SCANNED) {
+      const hits = read(rel).match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('no foundation-token redefinition outside theme/*.css', () => {
+    // theme/*.css 是 token 唯一事实源。其他文件给基础 token 赋值(--x: 值,
+    // 值非 var( 开头)即视为重定义,防止 codex-v2 之祸复发。
+    const re =
+      /--(bg|fg|accent|brand|border|radius|space|shadow|material|glass|scrim|z-|duration|ease|tracking|leading|font-size)[a-z0-9-]*:\s*(?!var\()/g
+    const offenders: string[] = []
+    for (const rel of SCANNED) {
+      if (rel.startsWith('theme/')) continue
+      // a11y.css 的媒体查询 token 覆盖是合法机制,非重复定义。
+      if (rel === 'styles/a11y.css') continue
+      const hits = read(rel).match(re)
+      if (hits) offenders.push(`${rel}: ${[...new Set(hits)].join(', ')}`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+})
+
+describe('style audit: ratchets (only-ever-decrease baselines)', () => {
+  // 每文件允许的存量上限。规则:计数 > 基线 → 红;计数 ≤ 基线 → 绿。
+  // 清理时把数字往下调,直到只剩白名单。新增文件不得出现(默认基线 0)。
+  const IMPORTANT_BASELINE: Record<string, number> = {
+    'styles/a11y.css': 4, // 全部带 audit-allow 注释(全局无障碍覆盖)
+    'styles/workspace.css': 2, // .workspace-resizing 全局拖拽态(带 audit-allow)
+  }
+
+  it('!important count does not exceed baseline, and is audit-allow commented', () => {
+    const offenders: string[] = []
+    for (const rel of SCANNED) {
+      const text = read(rel)
+      const count = (text.match(/!important/g) ?? []).length
+      const baseline = IMPORTANT_BASELINE[rel] ?? 0
+      if (count > baseline)
+        offenders.push(`${rel}: ${count} !important (baseline ${baseline})`)
+      // 白名单外的 !important 必须紧邻 audit-allow 注释(向上 6 行内,
+      // 允许注释写在选择器块上方;向下 1 行允许写在行内)。
+      const lines = text.split('\n')
+      lines.forEach((line, i) => {
+        if (!line.includes('!important')) return
+        const windowText = [
+          ...lines.slice(Math.max(0, i - 6), i),
+          line,
+          lines[i + 1] ?? '',
+        ].join('\n')
+        if (!/audit-allow:\s*important/.test(windowText))
+          offenders.push(`${rel}:${i + 1} !important without audit-allow note`)
+      })
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  // ── 无障碍降级单源规则(Stage6)──────────────────────────────────────────
+  // 三条偏好信号集中写在 styles/a11y.css;样式/组件不得再出现散落的
+  // prefers-reduced-motion 块(JS 弹簧由 useReducedMotion 门控,属另一条路径)。
+  it('a11y.css centralizes all three preference signals', () => {
+    const a11y = read('styles/a11y.css')
+    const motion =
+      /@media \(prefers-reduced-motion: reduce\) \{\n([\s\S]*?)\n\}/.exec(
+        a11y,
+      )?.[1]
+    expect(motion).toBeTruthy()
+    expect(motion).toContain('--duration-fast: 1ms')
+    expect(motion).toContain('animation-duration: 1ms !important')
+    expect(motion).toContain('transition-duration: 1ms !important')
+    // 覆盖选择器必须与主题表同特异性(:root[data-theme]),否则主题声明按
+    // 特异性胜出、覆盖静默失效(曾真实发生,Playwright 断言捕获)。
+    expect(motion).toMatch(/:root\[data-theme='dark'\]/)
+    const transparency =
+      /@media \(prefers-reduced-transparency: reduce\) \{\n([\s\S]*?)\n\}/.exec(
+        a11y,
+      )?.[1]
+    expect(transparency).toBeTruthy()
+    expect(transparency).toContain('--material-1-alpha: 0.97')
+    expect(transparency).toContain('--material-1-blur: 0px')
+    expect(transparency).toContain('--glass-blur: 0px')
+    expect(transparency).toMatch(/:root\[data-theme='dark'\]/)
+    const contrast =
+      /@media \(prefers-contrast: more\) \{\n([\s\S]*?)\n\}/.exec(a11y)?.[1]
+    expect(contrast).toBeTruthy()
+    expect(contrast).toContain('--border: 88 88 98')
+  })
+
+  it('no scattered prefers-reduced-motion blocks outside a11y.css', () => {
+    const offenders: string[] = []
+    for (const rel of STYLE_FILES) {
+      if (rel === 'styles/a11y.css') continue
+      if (read(rel).includes('prefers-reduced-motion')) {
+        const lines = read(rel)
+          .split('\n')
+          .filter((line) => line.includes('prefers-reduced-motion'))
+        offenders.push(`${rel}: ${lines.join(' | ')}`)
+      }
+    }
+    for (const rel of VUE_FILES) {
+      const blocks = styleBlocks(rel)
+      if (blocks.includes('prefers-reduced-motion'))
+        offenders.push(`${rel}: <style> contains prefers-reduced-motion`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  const SPACING_BASELINE: Record<string, number> = {
+    // Stage6 收敛后:3-14px 裸间距全部吸附到 var(--space-*)(±2px 内),
+    // 余值仅为不可吸附的定位偏移(-3px resizer、52px/348px 浮层锚点)。
+    'styles/activity.css': 0,
+    'styles/panels.css': 3,
+    'styles/workspace.css': 0,
+    'styles/surfaces/menus.css': 0,
+    'styles/surfaces/panels.css': 0,
+  }
+
+  it('bare px spacing count does not exceed baseline (use var(--space-*))', () => {
+    const re =
+      /(?:margin|padding|gap|inset|top|left|right|bottom)(?:-[a-z]+)?:\s*-?(?!0\b|1px\b|2px\b)\d+px/g
+    const offenders: string[] = []
+    for (const rel of SCANNED) {
+      const count = (read(rel).match(re) ?? []).length
+      const baseline = SPACING_BASELINE[rel] ?? 0
+      if (count > baseline)
+        offenders.push(`${rel}: ${count} bare px (baseline ${baseline})`)
+    }
+    expect(offenders, offenders.join('\n')).toEqual([])
+  })
+})

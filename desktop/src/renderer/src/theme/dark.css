@@ -1,0 +1,315 @@
+/* ── Dark theme token table (default) ───────────────────────────────────────
+   主题 token 表:key 集合必须与 light.css 完全一致(tokens.test.ts 强制)。
+   主题:DeepSeek 鲸鱼娘 —— 深海蓝是主体,金色降级为细部点缀。
+   灰阶不再是中性灰,而是「月光下的海水」:每一级都带冷蓝偏移,
+   让整块界面沉在深海氛围里,而不是浮在灰色纸面上。
+   约定:实色 = RGB 三元组(配合 rgb(var(--x) / <alpha>));
+         半透明叠层(border-l1..l4 / interactive-bg-* / mask-*)= 完整颜色值,直接 var(--x)。
+   末尾「旧 key 别名」区仅为兼容未迁移 UI,指向最接近的新 token,M8 删除。 */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* ── 深海灰阶(冷蓝偏移,替换原中性灰阶) ──
+     由浅到深:鲸白 → 浅海 → 中层水 → 深海。 */
+  --nb-00: 255 255 255;
+  --nb-50: 234 243 252; /* 鲸白(主文字) */
+  --nb-60: 230 240 250; /* dsh dark 表中 60 = 50(原样保留) */
+  --nb-75: 220 234 248;
+  --nb-100: 208 225 244;
+  --nb-150: 197 217 238;
+  --nb-200: 182 203 227;
+  --nb-300: 156 179 209;
+  --nb-400: 131 155 189;
+  --nb-500: 108 133 168;
+  --nb-600: 88 112 148;
+  --nb-700: 66 88 122;
+  --nb-750: 50 70 101;
+  --nb-800: 39 57 86;
+  --nb-850: 31 46 73;
+  --nb-875: 25 38 63;
+  --nb-900: 20 31 53;
+  --nb-950: 13 22 41; /* 深海(页面底) */
+  --nb-1000: 7 13 27;
+
+  /* ── 表面 ── */
+  --bg-base: var(--nb-950);
+  --bg-layer-1: var(--nb-875);
+  --bg-layer-2: var(--nb-850);
+  --bg-layer-3: var(--nb-800);
+  --bg-overlay: var(--nb-700);
+  --sidebar-fill: var(--nb-875);
+  --sidebar-item-hover: var(--nb-850);
+  --sidebar-item-active: var(--nb-750);
+  --menu-fill: var(--bg-layer-3);
+  --selector-fill: var(--nb-800);
+  --tip-fill: var(--nb-800);
+  --input-major: var(--nb-850);
+  --code-block-bg: var(--nb-900);
+  --code-banner-bg: var(--nb-850);
+  --inline-code-bg: var(--nb-850);
+  --tooltip-bg: var(--nb-750);
+  --tooltip-fg: var(--nb-00);
+  --toast-bg: var(--nb-50);
+  --toast-fg: var(--nb-800);
+  --button-primary-fill: var(--nb-50);
+  --button-primary-hover: var(--nb-100);
+  --button-primary-fg: var(--nb-1000);
+  --ghost-active-fill: var(--nb-750);
+  --ghost-active-border: var(--nb-600);
+  --scrollbar-thumb: 44 62 90;
+  --scrollbar-thumb-hover: 62 84 116;
+
+  /* ── 半透明叠层(完整颜色值) ── */
+  --border-l1: rgb(255 255 255 / 0.06);
+  --border-l2: rgb(255 255 255 / 0.12);
+  --border-l3: rgb(255 255 255 / 0.16);
+  --border-l4: rgb(255 255 255 / 0.2);
+  --border-inverted: rgb(255 255 255 / 0.06);
+  --interactive-bg-hover: rgb(255 255 255 / 0.08);
+  --interactive-bg-active: rgb(255 255 255 / 0.14);
+  --interactive-bg-hover-strong: rgb(255 255 255 / 0.24);
+  --interactive-bg-hover-danger: rgb(242 90 90 / 0.15);
+  --interactive-bg-hover-solid: var(--nb-800);
+  --mask-1: rgb(0 0 0 / 0.5);
+  --mask-2: rgb(0 0 0 / 0.2);
+  --skeleton-bg: rgb(255 255 255 / 0.08);
+  --mask-blur: 2px;
+
+  /* ── 文字 ── */
+  --label-primary: var(--nb-50);
+  --label-secondary: var(--nb-300);
+  --label-tertiary: var(--nb-400);
+  --label-caption: var(--nb-600);
+  --label-dimmed: var(--nb-750);
+  --label-inverted: var(--nb-800);
+
+  /* ── 鲸鱼蓝主色族(替换原 Emperor 金) ──
+     accent-* 是「鲸身蓝」(DeepSeek 鲸鱼的主体色),
+     fin-* 是「鱼鳍粉」,作为第二强调色出现,不与主色抢位。 */
+  --accent-fill: 77 143 255; /* 主按钮/发送/激活下划线(鲸身蓝) */
+  --accent-hover: 111 168 255; /* hover:提亮 */
+  --accent-strong: 138 183 255; /* 链接/强调文字 */
+  --accent-soft: 26 45 78; /* 选中/tertiary 底(深海蓝) */
+  --accent-soft-strong: 37 62 104; /* 高亮底(bubble highlight) */
+  --accent-glare: 190 220 255; /* shimmer 亮带 */
+  --fin: 255 141 176; /* 鱼鳍粉(第二强调色) */
+  --fin-strong: 255 178 204; /* 粉色强调文字 */
+  --fin-soft: 66 31 48; /* 粉色软底 */
+
+  /* ── 金锭标志(Minecraft 金锭贴图,逐像素) ──
+     1 最深的勾边 → 5 近白高光,取参考贴图原始调色板,保证像素画原样复刻。 */
+  --ingot-1: 178 100 17; /* 深金勾边 */
+  --ingot-2: 250 214 74; /* 中间金 */
+  --ingot-3: 253 245 95; /* 亮金 */
+  --ingot-4: 117 40 2; /* 最深褐边 */
+  --ingot-5: 255 253 224; /* 近白高光 */
+  --ingot-6: 220 150 19; /* 暗金 */
+  --ingot-7: 233 177 21; /* 金身 */
+  --bubble-user: 30 46 78; /* 用户气泡:偏冷的海水蓝 */
+  --focus-ring: 122 175 255;
+  --caret: 122 175 255;
+
+  /* ── 状态色(approval-* 即 dsh amber 族,Plan/审批用;--amber 名被 style-audit 保留禁用) ── */
+  --approval: 245 158 11; /* Plan / 审批 */
+  --approval-strong: 247 173 49;
+  --approval-line: 221 134 41;
+  --approval-soft: 39 36 31;
+  --ok-soft: 35 60 44;
+  --warn-soft: 39 36 31;
+  --danger-soft: 87 12 12;
+
+  /* ── 语义状态色(dsh state-success/warn/error 族;StatusBadge / 诊断 / 校验)
+     base = 点、图标、描边;soft = 徽章/提示块底;label = soft 底或面板上的文字 ── */
+  --state-ok: 34 197 94;
+  --state-ok-soft: 30 52 38;
+  --state-ok-label: 74 222 128;
+  --state-warn: 245 158 11;
+  --state-warn-soft: 56 44 24;
+  --state-warn-label: 247 181 64;
+  --state-error: 242 90 90;
+  --state-error-soft: 72 32 34;
+  --state-error-label: 248 125 125;
+
+  /* ── 头像色(环境信息卡子智能体头像;按 id 哈希取 1..6,纯色圆点,无文字) ── */
+  --avatar-1: 96 165 250;
+  --avatar-2: 94 214 205;
+  --avatar-3: 255 141 176;
+  --avatar-4: 167 149 255;
+  --avatar-5: 116 192 252;
+  --avatar-6: 126 224 176;
+
+  /* ── 代码高亮(dsh shiki css-variables 色值) ── */
+  --code-fg: var(--label-primary);
+  --code-constant: 77 171 247;
+  --code-string: 105 219 124;
+  --code-comment: 173 181 189;
+  --code-keyword: 255 141 176;
+  --code-parameter: 255 169 77;
+  --code-function: 177 151 252;
+  --code-string-expression: 140 233 154;
+  --code-punctuation: 206 212 218;
+  --code-link: 116 192 252;
+
+  /* ── 阴影(照抄 dsh gradient-shadow-text.css) ── */
+  --shadow-lv1: 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --shadow-lv1-blur: 0 4px 12px 0 rgb(0 0 0 / 0.02);
+  --shadow-lv2: 0 4px 12px 0 rgb(0 0 0 / 0.02), 0 2px 8px 0 rgb(0 0 0 / 0.04);
+  --shadow-lv3:
+    0 0 1px 0 rgb(0 0 0 / 0.2), 0 0 4px 0 rgb(0 0 0 / 0.02),
+    0 12px 32px 0 rgb(0 0 0 / 0.08);
+
+  /* ── 圆角 ── */
+  --radius-row: 8px;
+  --radius-cell: 10px;
+  --radius-card: 12px;
+  --radius-takeover: 20px;
+  --radius-composer: 22px;
+  --radius-modal: 24px;
+  --radius-pill: 999px;
+
+  /* ── 字体与字号(size / line-height 成对,另有 font 简写) ── */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial,
+    sans-serif;
+  --font-mono:
+    'SF Mono', 'JetBrains Mono', ui-monospace, 'Fira Code', Consolas,
+    'Liberation Mono', Menlo, 'PingFang SC', 'Microsoft YaHei';
+  --fs-xxxs: 11px;
+  --lh-xxxs: 14px;
+  --fs-xxs: 12px;
+  --lh-xxs: 18px;
+  --fs-xs: 13px;
+  --lh-xs: 20px;
+  --fs-s: 14px;
+  --lh-s: 22px;
+  --fs-base: 16px;
+  --lh-base: 24px;
+  --fs-md: 16px;
+  --lh-md: 28px;
+  --fs-code: 13px;
+  --lh-code: 22px;
+  --font-xxxs: var(--fs-xxxs) / var(--lh-xxxs) var(--font-sans);
+  --font-xxs: var(--fs-xxs) / var(--lh-xxs) var(--font-sans);
+  --font-xs: var(--fs-xs) / var(--lh-xs) var(--font-sans);
+  --font-s: var(--fs-s) / var(--lh-s) var(--font-sans);
+  --font-base: var(--fs-base) / var(--lh-base) var(--font-sans);
+  --font-md: var(--fs-md) / var(--lh-md) var(--font-sans);
+  --font-code: var(--fs-code) / var(--lh-code) var(--font-mono);
+  --font-code-small: var(--fs-xxs) / var(--lh-xxs) var(--font-mono);
+
+  /* ── dsh 动效 ── */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-ds-fast: 100ms;
+  --duration-ds: 200ms;
+  --duration-ds-slow: 300ms;
+
+  /* ── 间距(4px 基网,仅供手写 / scoped CSS) ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  /* dsh 几何需要的半步(scoped CSS 专用) */
+  --space-0-5: 2px;
+  --space-1-5: 6px;
+  --space-2-5: 10px;
+  --space-3-5: 14px;
+  --space-7: 28px;
+  --space-8: 32px;
+
+  /* 分类色(capability tag / data-tone) */
+  --tone-cyan: 103 232 249;
+  --tone-violet: 196 181 253;
+  --tone-blue: 147 197 253;
+
+  /* ── 文本层级(alpha 派生,grok-app 分类法) ── */
+  --text-primary: 0.92;
+  --text-secondary: 0.8; /* ≈ label-secondary */
+  --text-tertiary: 0.64; /* ≈ label-tertiary */
+  --hover-bg-a: 0.08;
+  --active-bg-a: 0.14;
+
+  /* ── 统一玻璃/材质系统 ── */
+  --glass-bg: var(--bg-layer-2);
+  --glass-alpha: 0.86;
+  --glass-border: 255 255 255;
+  --glass-border-a: 0.06;
+  --glass-blur: 24px;
+  --glass-saturate: 1.4;
+  --glass-shadow: var(--shadow-lv3);
+  --glass-solid-alpha: 0.97; /* reduced-transparency / 实体回退 */
+
+  /* 材质分级 */
+  --material-1-bg: var(--bg-layer-1);
+  --material-1-alpha: 0.9;
+  --material-1-blur: 12px;
+  --material-2-bg: var(--bg-layer-1);
+  --material-2-alpha: 0.94;
+  --material-2-blur: 24px;
+  --material-3-bg: var(--bg-layer-2);
+  --material-3-alpha: 0.96;
+  --material-3-blur: 24px;
+  --scrim-a: 0.5; /* = dsh mask-1 */
+
+  /* ── 层叠标度(替换全部魔法 z-index;按语义归位) ── */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 20;
+  --z-overlay: 40;
+  --z-drawer: 60;
+  --z-popover: 80;
+  --z-toast: 100;
+  --z-modal: 120;
+  --z-menu: 140;
+  --z-lightbox: 160;
+
+  /* ── 动效(单一主曲线;弹簧数值镜像在 composables/useSpring.ts) ── */
+  --duration-instant: 80ms;
+  --duration-fast: 140ms;
+  --duration: 220ms;
+  --duration-slow: 340ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --ease-in: cubic-bezier(0.32, 0, 0.67, 0);
+
+  /* ── 排版纪律 ── */
+  --tracking-tight: -0.02em;
+  --tracking-body: 0;
+  --leading-tight: 1.25;
+  --leading-body: 1.45;
+  --leading-caption: 1.3;
+
+  /* ── 旧 key 别名(deprecated,指向最接近的新 token;M8 删除) ── */
+  --bg: var(--bg-base);
+  --bg-elevated: var(--bg-layer-1);
+  --bg-inset: var(--code-block-bg);
+  --fg: var(--label-primary);
+  --border: 44 62 90; /* ≈ border-l2 叠在 bg-base 上 */
+  --border-strong: 60 82 116; /* ≈ border-l4 叠在 bg-base 上 */
+  --accent: var(--accent-fill);
+  --accent-fg: 255 255 255; /* 鲸鱼蓝填充上的文字 */
+  --brand: 77 143 255; /* 鲸鱼蓝基色 */
+  --danger: 242 90 90;
+  --warn: 245 158 11;
+  --ok: 34 197 94;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: var(--radius-row);
+  --radius: var(--radius-row);
+  --radius-lg: var(--radius-card);
+  --radius-xl: var(--radius-takeover);
+  --shadow-color: 0 0 0;
+  --shadow-sm: var(--shadow-lv1);
+  --shadow-md: var(--shadow-lv2);
+  --shadow-lg: var(--shadow-lv3);
+  --font-size-2xs: 10px;
+  --font-size-xs: var(--fs-xxxs);
+  --font-size-sm: var(--fs-xxs);
+  --font-size-md: var(--fs-xs);
+  --font-size-lg: var(--fs-s);
+  --font-size-xl: 17px;
+  --font-size-2xl: 20px;
+}

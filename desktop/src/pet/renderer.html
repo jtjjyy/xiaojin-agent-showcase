@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' app://pet-assets"
+    />
+    <title>XiaoJin Agent Desktop Pet</title>
+    <link rel="stylesheet" href="./renderer.css" />
+  </head>
+  <body>
+    <main id="pet-shell" aria-live="polite">
+      <div id="speech-bubble" hidden><span id="speech-text"></span></div>
+      <div id="subagent-badge" hidden>×0</div>
+      <div id="pet" role="img" aria-label="小单"></div>
+    </main>
+    <script src="./event-mapper.js"></script>
+    <script src="./idle-scenes.js"></script>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,137 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  user-select: none;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  -webkit-app-region: drag;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+#pet-shell {
+  /* Character height; the speech bubble sits just above it. */
+  --pet-height: min(58vh, 196px);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  filter: drop-shadow(0 10px 14px rgba(37, 22, 11, 0.24));
+}
+
+/*
+ * #pet shows one frame of a horizontal strip (event-mapper.js SPRITES). The
+ * strip is scaled to `frames × 100%` of the box, so background-position
+ * k/(frames-1) lands exactly on frame k; steps(frames, jump-none) visits each
+ * of those positions for 1/frames of the cycle. renderer.js sets the vars.
+ */
+#pet {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  height: var(--pet-height);
+  aspect-ratio: 192 / 208;
+  transform: translateX(-50%);
+  background-repeat: no-repeat;
+  background-position: 0% 0%;
+  background-size: calc(var(--pet-frames, 2) * 100%) 100%;
+  animation: pet-frames var(--pet-duration, 1s)
+    steps(var(--pet-frames, 2), jump-none) infinite var(--pet-direction, normal);
+  pointer-events: none;
+}
+
+@keyframes pet-frames {
+  from {
+    background-position-x: 0%;
+  }
+  to {
+    background-position-x: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #pet {
+    animation: none;
+  }
+}
+
+#speech-bubble {
+  position: absolute;
+  left: 50%;
+  /* Just above the head: the character fills its whole frame. */
+  bottom: calc(var(--pet-height) + 18px);
+  width: min(278px, calc(100% - 18px));
+  min-height: 40px;
+  max-height: 98px;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid rgba(54, 36, 24, 0.2);
+  border-radius: 16px;
+  background: rgba(255, 247, 225, 0.92);
+  color: #3c2a1b;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+  text-align: center;
+  overflow-wrap: anywhere;
+  box-shadow: 0 8px 18px rgba(75, 36, 20, 0.18);
+}
+
+#speech-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+#speech-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  transform: translateX(-50%) rotate(45deg);
+  border-bottom: 1px solid rgba(54, 36, 24, 0.18);
+  border-right: 1px solid rgba(54, 36, 24, 0.18);
+  background: rgba(255, 247, 225, 0.92);
+}
+
+#speech-bubble[hidden] {
+  display: none;
+}
+
+#subagent-badge {
+  position: absolute;
+  bottom: 82px;
+  right: 38px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(45, 30, 20, 0.26);
+  border-radius: 999px;
+  background: #9b2d22;
+  color: #fff6df;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 6px 14px rgba(75, 36, 20, 0.28);
+}
+
+#subagent-badge[hidden] {
+  display: none;
+}
