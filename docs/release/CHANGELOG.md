@@ -1,6 +1,6 @@
 # 更新日志
 
-本文件记录 Emperor Agent 的用户可感知变化，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。当前项目尚未在这里固定公开版本段；待版本正式发布时，再把 `Unreleased` 内容移动到带日期的版本标题下。
+本文件记录小金 Agent 的用户可感知变化，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。当前项目尚未在这里固定公开版本段；待版本正式发布时，再把 `Unreleased` 内容移动到带日期的版本标题下。
 
 ## [Unreleased]
 
@@ -27,9 +27,9 @@
 - 建立中文优先的文档中心、完整用户手册、当前架构与扩展指南，并为发布、安全、归档和文档维护定义统一机制。
 - 能力页的 MCP 标签支持粘贴 Claude Desktop、Cursor、VS Code 等客户端的 MCP 配置或用表单添加 server，导入前预览新增、覆盖与跳过；新增 Streamable HTTP（`http`）传输，首次连接失败时回退到 SSE；每个 server 可以单独启停和删除。
 - 能力页的 Skills 标签支持粘贴 `SKILL.md`、导入本地文件夹、zip 或 GitHub 链接，并可打开个人或项目 Skills 文件夹；列出不合格的 Skill 及原因，只读 Skill 可以复制为个人 Skill，文件夹变化后列表自动刷新。
-- 增加 `skill_manage` 与 `mcp_config` 工具，让 Agent 管理 Skills 和 Emperor 自己的 MCP 配置；写入跟随权限预设，`danger-full-access` 以外每次写入都需要批准。
+- 增加 `skill_manage` 与 `mcp_config` 工具，让 Agent 管理 Skills 和小金 Agent 自己的 MCP 配置；写入跟随权限预设，`danger-full-access` 以外每次写入都需要批准。
 - 能力页支持从本地文件夹或 zip 安装 Plugin；从 URL 安装的 Plugin 在签名验证通过前不会激活。
-- 侧栏重做：顶部是收起与后退 / 前进，Emperor 标志、搜索和通知铃铛；「新对话」下新增 Pull Request、定时任务、能力、探索四个整页入口；底部是「设置」和明暗切换按钮；会话可以置顶，置顶组内可调整顺序。
+- 侧栏重做：顶部是收起与后退 / 前进，小金 Agent 标志、搜索和通知铃铛；「新对话」下新增 Pull Request、定时任务、能力、探索四个整页入口；底部是「设置」和明暗切换按钮；会话可以置顶，置顶组内可调整顺序。
 - 增加应用内通知：定时任务运行结果、其他会话中等待回答的问题 / 审批 / 计划、不在屏幕上的会话完成的回复，以及 Git 操作回执；点击跳到对应会话、定时任务页或「审查」。
 - 增加定时任务页：搜索、“全部 / 已开启 / 已暂停 / 已完成”标签、「创建 ▾」中的每日摘要与每周回顾模板、行菜单（立即运行 / 暂停或恢复 / 删除）和任务编辑对话框。
 - 增加能力页（`/capabilities`），把插件、Skills、MCP 和工具合并为四个标签；旧的 `/plugins/*`、`/tools` 和 `?settings=tools` 链接自动跳转。
@@ -63,9 +63,9 @@
 - 桌面凭据代填结果无法确认时，仍禁止该目标继续截图；桌面动作可用时，设置页准确标为“可交互（实验）”。
 - 修复新建对话后发送的消息落到之前某个历史会话的问题；Core 不再为缺少会话 id 的请求猜测目标会话。
 - 修复新对话发出第一条消息后，主画面显示「没有找到这个会话」、需要到侧栏再点一次的问题；在新对话里执行斜杠命令同样会直接进入新会话。
-- 修复 Agent 新增 MCP 时写进其他客户端配置的问题：MCP 只通过 Emperor 自己的 `mcp_config.json` 管理。
+- 修复 Agent 新增 MCP 时写进其他客户端配置的问题：MCP 只通过小金 Agent 自己的 `mcp_config.json` 管理。
 - 修复上次启动被强杀或断电后，残留的启动锁导致应用一直报 `installation_lock_busy` 无法启动的问题。
-- write / edit 工具的原子写暂存文件改放在 Emperor Home，不再短暂出现在项目目录和 `git status` 里；在设置中打开项目 Skills 文件夹也不再为此在项目里创建目录。
+- write / edit 工具的原子写暂存文件改放在应用数据目录，不再短暂出现在项目目录和 `git status` 里；在设置中打开项目 Skills 文件夹也不再为此在项目里创建目录。
 - 修复 `packages/core/src/memory/history.ts` 源码签名中的二进制 NUL 字节。
 - 完成 TypeScript / Electron 迁移审计后的主线加固与 parity 收尾。
 - 修复进程 exit 0、搜索线索和任务完成被混为一谈的问题；重复 URL、空输出、错误页和等价命令不再重置无进展保护。
@@ -80,4 +80,4 @@
 - 发布文档区分当前未签名 Preview 与尚未启用的受信 Stable 流程。
 - 右侧工作台的内置浏览器运行在独立的 sandboxed `WebContentsView` 与不落盘的内存分区中，只加载你在地址栏提交的 `http(s)` 地址，拒绝权限请求、下载和应用内弹窗，关闭后清空浏览数据；旧的内嵌预览通道与 `previewId` 授权路径已删除。
 - 电脑操作：页面改成明文的密码框、普通输入框里的验证码，以及代填凭据后整页的输入值都不再出现在 Agent 的观察结果中；跨源 iframe 内的动作按 iframe 自己的网站授权；接管期间弹出的窗口保持由你控制；以点结尾的可执行文件名不再绕过下载拦截；受限 Shell 不能读取 `~/.emperor/browser/`；授权记录损坏时明确显示为已暂停。
-- `gh` 只以固定参数调用，仓库、PR 编号和搜索文本先经校验再作为单个参数传入；Emperor 不向 `gh` 传递 `GH_TOKEN`、`GITHUB_TOKEN` 等 token 环境变量，Pull Request 页不执行任何写操作。
+- `gh` 只以固定参数调用，仓库、PR 编号和搜索文本先经校验再作为单个参数传入；小金 Agent 不向 `gh` 传递 `GH_TOKEN`、`GITHUB_TOKEN` 等 token 环境变量，Pull Request 页不执行任何写操作。

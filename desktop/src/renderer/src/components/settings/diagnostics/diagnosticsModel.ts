@@ -346,7 +346,7 @@ export function diagnosticReportText(input: {
   environmentLabel?: string
 }): string {
   const lines = [
-    'Emperor 诊断报告',
+    '小金 Agent 诊断报告',
     input.root ? `运行根目录：${shortenHomePaths(input.root)}` : '',
     `总体：${input.summary.headline}`,
   ].filter(Boolean)
@@ -632,7 +632,7 @@ function storagePathRows(
     ),
     {
       id: 'global-state-root',
-      label: 'Emperor Home',
+      label: '数据目录',
       value: sourceLabel(paths?.stateRootSource),
       detail: paths?.stateRoot || '未返回',
       tone: paths?.stateRoot ? 'ok' : 'muted',
@@ -643,7 +643,7 @@ function storagePathRows(
           'active-project-path',
           '当前项目',
           activeProjectPath,
-          '项目已绑定；私有会话仍保存到全局 Emperor store，不写入项目源码目录',
+          '项目已绑定；私有会话仍保存到全局数据目录，不写入项目源码目录',
         )
       : {
           id: 'active-project-path',

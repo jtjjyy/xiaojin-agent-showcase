@@ -94,7 +94,7 @@ async function connect(): Promise<void> {
     else
       error.value =
         result.reason === 'no-host'
-          ? '开发版无法登记浏览器连接，请使用安装版 Emperor'
+          ? '开发版无法登记浏览器连接，请使用安装版小金 Agent'
           : result.reason === 'unavailable'
             ? socketConflictMessage
             : '没有找到可登记的 Chrome 或 Edge；请先打开一次浏览器'
@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
       title="连接 Chrome/Edge"
       :description="
         connected ||
-        '让本机的 Chrome 或 Edge 能找到 Emperor；之后在 XiaoJin 扩展中发起配对。'
+        '让本机的 Chrome 或 Edge 能找到小金 Agent；之后在 XiaoJin 扩展中发起配对。'
       "
     >
       <Button

@@ -106,7 +106,7 @@ describe('computer use settings model', () => {
         stage: '不可用',
         tone: 'neutral',
         // Spec 00 §6.9: exactly this wording when only desktop is off.
-        description: 'Emperor 内建桌面控制已关闭',
+        description: '小金 Agent 内建桌面控制已关闭',
         missing: [],
         switchedOn: false,
       },

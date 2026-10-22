@@ -133,13 +133,13 @@ Agent 使用 `skill_manage` 工具管理 Skills，不应使用文件或 Shell �
 
 ## MCP
 
-Emperor 只读取自己的 MCP 配置文件 `stateRoot/mcp_config.json`（默认 `~/.emperor/mcp_config.json`），不读取 Claude Desktop、Cursor、VS Code 等其他客户端的配置，也不通过 mcporter 管理 server。
+小金 Agent 只读取自己的 MCP 配置文件 `stateRoot/mcp_config.json`（默认 `~/.emperor/mcp_config.json`），不读取 Claude Desktop、Cursor、VS Code 等其他客户端的配置，也不通过 mcporter 管理 server。
 
 ### 添加 server
 
 在能力页“MCP”标签（`/capabilities/mcp`）点击右上角的「添加」，有两种方式：
 
-- **粘贴 JSON**：直接粘贴其他客户端的 MCP 配置。可以识别 Claude Desktop、Claude Code、Cursor 使用的 `{"mcpServers": {...}}`，VS Code 或 Emperor 使用的 `{"servers": {...}}`，带 `name` 字段的单个 server 对象，以及不带外层容器的“名称 → 配置”映射。带注释、尾逗号或缺少外层花括号的片段会自动修复并提示。
+- **粘贴 JSON**：直接粘贴其他客户端的 MCP 配置。可以识别 Claude Desktop、Claude Code、Cursor 使用的 `{"mcpServers": {...}}`，VS Code 或小金 Agent 使用的 `{"servers": {...}}`，带 `name` 字段的单个 server 对象，以及不带外层容器的“名称 → 配置”映射。带注释、尾逗号或缺少外层花括号的片段会自动修复并提示。
 - **表单**：填写名称，选择 HTTP、SSE 或 stdio，再填写服务地址和可选的请求头，或者启动命令、参数和可选的环境变量。
 
 两种方式都会先预览将要新增、覆盖或跳过的 server，并列出警告；同名 server 默认跳过，勾选「覆盖」后才替换。点击「导入」后立即写入配置并连接。例如：
@@ -204,7 +204,7 @@ Agent 被要求只通过 `mcp_config` 添加 server，不使用 mcporter，也�
 
 - MCP server 的名称、命令和 URL 来自你的配置。Agent 只能通过 `mcp_config` 修改配置，在 `danger-full-access` 以外的预设中每次修改都需要你批准。
 - `stdio` server 会启动本地进程，应像审查命令一样审查它的来源和参数。
-- MCP 工具的副作用不受 Emperor 权限预设约束，只配置你信任的 server。
+- MCP 工具的副作用不受小金 Agent 权限预设约束，只配置你信任的 server。
 - 远程 MCP、Skill 脚本和 Plugin 内容都按不可信输入处理。导入 Skill 或安装 Plugin 前确认来源可信。
 - 不要把 API Key 直接写进可提交的项目文件，优先使用 `${ENV_NAME}`。MCP 标签读取配置时保留 `${ENV_NAME}`，把 args、env、headers、URL 中其余字面字符串显示为 `[REDACTED]`；保存原始配置时，未改动的掩码只从同一 server 同一字段回填，没有旧值的掩码会被拒绝。
 

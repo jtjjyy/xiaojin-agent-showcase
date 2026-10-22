@@ -1,11 +1,11 @@
-# Emperor Agent 架构总览
+# 小金 Agent 架构总览
 
 > 文档状态：Active<br>
 > 面向读者：维护者、开发者、希望理解产品边界的用户<br>
 > 最后核验：2026-09-23<br>
 > 事实源：`packages/core/src/harness/host/host.ts`、`packages/core/src/api/core-api.ts`、`packages/core/src/api/operations.ts`、`desktop/src/main/`、`desktop/src/preload/`、`desktop/src/renderer/src/router.ts`、`desktop/src/renderer/src/components/shell/`、`desktop/src/renderer/src/components/workspace/`
 
-Emperor Agent 的桌面主产品是本地单用户 Electron 应用。Electron main 进程内创建一个 TypeScript `CoreApi`；`CoreApi` 背后是唯一的内核组合根 `HarnessHost`。Vue renderer 只能通过 preload 暴露的 IPC contract 请求 Core，并通过 runtime events 接收过程状态。源码还提供默认不随桌面安装包开放的 ACP V1 stdio operator preview，它为受信本机 client 创建独立的 `CoreApi`。产品主线没有 Python runtime、HTTP backend 或 WebSocket backend。
+小金 Agent 的桌面主产品是本地单用户 Electron 应用。Electron main 进程内创建一个 TypeScript `CoreApi`；`CoreApi` 背后是唯一的内核组合根 `HarnessHost`。Vue renderer 只能通过 preload 暴露的 IPC contract 请求 Core，并通过 runtime events 接收过程状态。源码还提供默认不随桌面安装包开放的 ACP V1 stdio operator preview，它为受信本机 client 创建独立的 `CoreApi`。产品主线没有 Python runtime、HTTP backend 或 WebSocket backend。
 
 `@emperor/core` 是受控的内部宿主接口。Electron 和 ACP 只能从 `@emperor/core/api`、`@emperor/core/runtime-contract` 或 `@emperor/core/host-capabilities` 导入；runtime contract 保持 browser-safe，不拉入 Node store 实现。
 
@@ -123,4 +123,4 @@ ACP 的 `session/prompt` 也进入同一个 `chat.submit`。`session/new` 只能
 - 新持久数据必须定义位置、原子写入、恢复和兼容策略。
 - 不恢复 Python、HTTP 或 WebSocket 的产品主链路。
 
-具体清单见[扩展 Emperor Agent](../development/extending-emperor.md)。
+具体清单见[扩展小金 Agent](../development/extending-emperor.md)。

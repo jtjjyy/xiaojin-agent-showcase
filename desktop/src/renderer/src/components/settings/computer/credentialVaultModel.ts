@@ -61,7 +61,7 @@ export function vaultEncryption(status: VaultStatus | null): VaultBadge | null {
       tone: 'error',
       badge: '无保护',
       description:
-        'basic_text：Linux 上没有可用的密钥服务，safeStorage 只能以明文保存加密密钥，秘密无法得到保护，所以凭据库已停用。请安装或启用 GNOME Keyring 或 KWallet 后重启 Emperor。',
+        'basic_text：Linux 上没有可用的密钥服务，safeStorage 只能以明文保存加密密钥，秘密无法得到保护，所以凭据库已停用。请安装或启用 GNOME Keyring 或 KWallet 后重启小金 Agent。',
     }
   if (!status.available) return null
   const label = BACKEND_LABEL[backend] ?? '系统加密'
@@ -75,7 +75,7 @@ export function vaultEncryption(status: VaultStatus | null): VaultBadge | null {
     return {
       tone: 'ok',
       badge: '系统加密',
-      description: `${label}：密钥只允许 Emperor 读取，其他程序读取会触发系统授权提示。`,
+      description: `${label}：密钥只允许小金 Agent 读取，其他程序读取会触发系统授权提示。`,
     }
   return {
     tone: 'warn',

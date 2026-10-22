@@ -5,7 +5,7 @@
   "type": "module",
   "description": "XiaoJin Agent desktop application (Electron + Vue) that hosts CoreApi in process.",
   "author": "XiaoJin Agent maintainers",
-  "homepage": "https://github.com/jtjjyy/xiaojin-agent",
+  "homepage": "https://github.com/jtjjyy/xiaojin-agent-showcase",
   "main": "out/main/index.js",
   "scripts": {
     "postinstall": "node scripts/fix-node-pty-permissions.cjs",

@@ -582,7 +582,7 @@ async function fullstack(
           window !== page && window.url().startsWith('data:text/html'),
       )
       if (!overlay) throw new Error('control overlay window missing')
-      await overlay.getByText('Emperor 正在操作', { exact: false }).waitFor()
+      await overlay.getByText('小金 Agent 正在操作', { exact: false }).waitFor()
       await overlay.getByRole('button', { name: '停止' }).waitFor()
       return { text: await overlay.locator('body').innerText() }
     },

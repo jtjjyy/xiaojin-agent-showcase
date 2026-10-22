@@ -169,7 +169,7 @@ describe.skipIf(process.platform !== 'darwin')(
         expect(new ExternalBrowserDriver(second).capability()).toMatchObject({
           stage: 'unavailable',
           available: false,
-          reason: expect.stringContaining('另一个 Emperor'),
+          reason: expect.stringContaining('另一个小金 Agent'),
         })
         // The first instance keeps serving until it exits. The degraded
         // instance then becomes the owner without an application restart.

@@ -10,14 +10,14 @@
 | 概念                        | 含义                                                      | 默认值                                                        | 覆盖方式                        |
 | --------------------------- | --------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------- |
 | `runtimeRoot`               | 应用内置资源根：模板、内置 Skills、静态资源               | 开发模式为仓库根；Release 为只读 `resources/runtime-defaults` | `--root` / `EMPEROR_AGENT_ROOT` |
-| Emperor Home（`stateRoot`） | 全局私有数据根：会话、记忆、配置、附件、Skills 与受管环境 | `~/.emperor`                                                  | `EMPEROR_CONFIG_DIR`            |
+| 应用数据目录（`stateRoot`） | 全局私有数据根：会话、记忆、配置、附件、Skills 与受管环境 | `~/.emperor`                                                  | `EMPEROR_CONFIG_DIR`            |
 
 `runtimeRoot` 里是只读或半只读的应用资源，例如 `templates/`（含 `templates/agent/persona.md`）、`skills/`、`model_config.example.json`、`mcp_config.example.json`；仓库中的两个配置示例源文件位于 `config/examples/`。`stateRoot` 里是持续读写的用户私有状态。两者互不包含。
 
 解析优先级（`resolveRuntimePaths()`）：
 
 - `runtimeRoot`：显式 `root` 参数 > `EMPEROR_AGENT_ROOT` > 开发模式的仓库根 / Release 的 `resources/runtime-defaults`。
-- Emperor Home：显式 `stateRoot` 参数 > `EMPEROR_CONFIG_DIR` > `~/.emperor`。
+- 应用数据目录：显式 `stateRoot` 参数 > `EMPEROR_CONFIG_DIR` > `~/.emperor`。
 
 ## 目录模型
 
@@ -75,7 +75,7 @@
       AGENTS.local.md      # 全局私有项目记忆
       prompt-overlay.md
   git/
-    worktree-leases.json   # Emperor 创建的 worktree owner/lease
+    worktree-leases.json   # 小金 Agent 创建的 worktree owner/lease
     receipts/              # commit/push/pull/worktree/PR 的脱敏凭据
   processes/
     receipts.v1.json       # 受管进程的最小账本
@@ -108,7 +108,7 @@
 
 旧版本可能留下 `team/`、`tasks/`、`goals/`、`code-intelligence/`、`memory/history.jsonl`、`memory/tool-results/` 等目录或文件。当前内核启动时不创建、也不读写它们；旧的 `hooks_config.json` 与 `hooks/` 同样不再使用。这些内容保留原位，不会自动删除，确认不需要后可以手动删除。
 
-Emperor Home 根目录及其主要子目录以 `0700` 创建，其他系统用户无法进入，因此其中的文件只有当前用户能访问。
+应用数据目录根目录及其主要子目录以 `0700` 创建，其他系统用户无法进入，因此其中的文件只有当前用户能访问。
 
 ## Session log
 
@@ -139,17 +139,17 @@ Build 项目目录只可能包含用户自己维护的内容：
 
 Core 不会在项目目录下创建 session、memory、附件或 Goal 数据。只有在你把 Skill 保存或导入到项目 scope，或以项目 / 本地项目 scope 管理 Plugin 时，Core 才会写入上面 `.emperor/` 下的对应位置。在设置里打开项目 Skills 文件夹只是查看：目录还不存在时会提示，不会为此在项目里建目录。如果旧版本留下了 `.emperor/sessions`、`.emperor/memory` 等目录，Diagnostics 只提示“检测到旧私有数据”，不会自动删除或搬移。
 
-Agent 按你的要求修改项目文件时，write / edit 工具先在 Emperor Home 的 `write-staging/` 写好内容，再整体改名到目标位置，项目里不会出现半写入的临时文件。如果项目和 Emperor Home 不在同一个文件系统上（例如外接盘），跨盘无法原子改名，这时退回在目标文件旁边暂存 `.<文件名>.<pid>.<uuid>.tmp` 再改名；写入依然原子，原有文件权限保留。
+Agent 按你的要求修改项目文件时，write / edit 工具先在应用数据目录的 `write-staging/` 写好内容，再整体改名到目标位置，项目里不会出现半写入的临时文件。如果项目和应用数据目录不在同一个文件系统上（例如外接盘），跨盘无法原子改名，这时退回在目标文件旁边暂存 `.<文件名>.<pid>.<uuid>.tmp` 再改名；写入依然原子，原有文件权限保留。
 
-## Emperor Home 之外的位置
+## 应用数据目录之外的位置
 
-除 Emperor Home 和上面列出的项目 `.emperor/` 外，应用只会用到以下位置：
+除应用数据目录和上面列出的项目 `.emperor/` 外，应用只会用到以下位置：
 
 | 位置                                                                       | 内容                                                                                                                                                                                                                                     |
 | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Electron `userData`（macOS 为 `~/Library/Application Support/<应用名>`）   | Chromium 的缓存、Cookies、Local Storage；界面主题、三栏布局和应用内通知列表等浏览器侧偏好。不含会话、记忆等业务数据。用户操作的工作台浏览器使用不落盘的内存分区；Agent 持久 profile 的网站数据另存于 Emperor Home 的 `browser/profiles/` |
+| Electron `userData`（macOS 为 `~/Library/Application Support/<应用名>`）   | Chromium 的缓存、Cookies、Local Storage；界面主题、三栏布局和应用内通知列表等浏览器侧偏好。不含会话、记忆等业务数据。用户操作的工作台浏览器使用不落盘的内存分区；Agent 持久 profile 的网站数据另存于应用数据目录的 `browser/profiles/` |
 | Chrome / Edge 用户级 `NativeMessagingHosts/com.emperor.agent.browser.json` | 启用外部浏览器连接时登记当前 host 路径，并为每个已配对扩展 ID 写入一条精确的 `allowed_origins`；仅在已使用的浏览器用户配置目录中登记。撤销最后一个配对后移除对应 manifest。                                                              |
-| `$HOME/.emperor.bootstrap.lock`                                            | 初始化 Emperor Home 期间的启动锁，完成后删除。必须放在 Emperor Home 外，因为旧版 Home 会在此期间被整体改名                                                                                                                               |
+| `$HOME/.emperor.bootstrap.lock`                                            | 初始化应用数据目录期间的启动锁，完成后删除。必须放在应用数据目录外，因为旧版 Home 会在此期间被整体改名                                                                                                                               |
 | 系统临时目录                                                               | Skill 导入时的解压暂存，完成后删除                                                                                                                                                                                                       |
 
 启动锁记录持有者的进程号和心跳时间。如果上次启动被强杀或断电导致锁残留，下次启动发现持有进程已退出或心跳过期，会自动接管并记录警告；只有持有者仍在运行且心跳新鲜时，才会报 `installation_lock_busy`。
@@ -174,7 +174,7 @@ Agent 按你的要求修改项目文件时，write / edit 工具先在 Emperor H
 
 ## 迁移策略
 
-Release 在创建 Core 前由 `bootstrapEmperorHome()` 执行默认根迁移：
+Release 在创建 Core 前由 `bootstrap小金 AgentHome()` 执行默认根迁移：
 
 1. 设置 `EMPEROR_CONFIG_DIR` 或显式 `stateRoot` 时不探测默认旧根。
 2. `~/.emperor` 不存在而 `~/.emperor-agent` 存在时，先写 prepared receipt，再原子 rename，随后规范化配置并写 applied receipt。
@@ -190,7 +190,7 @@ Release 在创建 Core 前由 `bootstrapEmperorHome()` 执行默认根迁移：
 
 `diagnostics.get()` 中与存储相关的字段：
 
-- `paths.*`：当前 runtimeRoot、Emperor Home 及其来源（`explicit` / `env` / `default`）和各子路径。
+- `paths.*`：当前 runtimeRoot、应用数据目录及其来源（`explicit` / `env` / `default`）和各子路径。
 - `legacyStateMigration`：本次启动检测到的旧存储位置、已复制/跳过的文件数。
 - `projectLegacyPrivateData`：当前绑定项目的源码目录里检测到的旧私有数据（仅提示）。
 - `kernel.archivedLegacySessions`：首次启动新内核时旧会话目录被移到的位置。

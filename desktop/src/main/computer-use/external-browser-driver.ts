@@ -253,7 +253,7 @@ export class ExternalBrowserDriver implements BrowserDriver {
       ...(blocked !== null
         ? {
             reason: blocked.includes('already in use')
-              ? '另一个 Emperor 正在使用 Chrome/Edge 连接；退出它后本应用会自动恢复'
+              ? '另一个小金 Agent 正在使用 Chrome/Edge 连接；退出它后本应用会自动恢复'
               : `Chrome/Edge 连接不可用：${blocked}`,
           }
         : !available

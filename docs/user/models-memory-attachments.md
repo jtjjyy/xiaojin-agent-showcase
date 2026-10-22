@@ -7,7 +7,7 @@
 
 ## 模型配置
 
-Emperor Agent 可以保存多条模型配置，但全局同时只激活一个模型：
+小金 Agent 可以保存多条模型配置，但全局同时只激活一个模型：
 
 - 文件：`stateRoot/model_config.json`
 - schema：`schemaVersion: 2`
@@ -58,7 +58,7 @@ API Key 不会出现在模型上下文中。MCP 返回的内容按不可信输�
 | 记忆版本     | `memory/versions/`                      | 查看和恢复历史快照         |
 | 会话记录     | `sessions/<session-id>/log.jsonl`       | 当前会话的全部内容         |
 
-表中路径都相对 Emperor Home（`stateRoot`），默认 `~/.emperor`。
+表中路径都相对应用数据目录（`stateRoot`），默认 `~/.emperor`。
 
 用户档案、全局长期记忆和（Build 会话中的）项目私有记忆会作为背景信息进入每个会话，内容变化后的下一轮会重新注入。每一节最多 32 KiB。Agent 可以用 `memory_edit` 工具修改这三份记忆（精确替换或追加），修改会生成版本快照；你也可以要求它“记住”某件事。项目源码中的 `AGENTS.md` 不属于这个写入链路。
 
@@ -85,7 +85,7 @@ Composer 一次最多保留 5 个待发送附件：
 
 ## 备份与迁移
 
-备份时先完全退出应用，再复制整个 Emperor Home。只复制 `memory/` 会遗漏会话、Scheduler、MCP、用户 Skills、受管工具环境和模型配置。
+备份时先完全退出应用，再复制整个应用数据目录。只复制 `memory/` 会遗漏会话、Scheduler、MCP、用户 Skills、受管工具环境和模型配置。
 
 首次启动当前版本时，旧版本的 `sessions/` 目录会整体移到 `sessions.legacy-<时间戳>/` 保留，新版本从空的会话列表开始；旧会话不会被删除，但也不会在界面中显示。不要在应用运行时手工修改 `log.jsonl`。
 

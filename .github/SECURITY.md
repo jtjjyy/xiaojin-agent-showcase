@@ -22,7 +22,7 @@ Emperor Agent 是本地单用户 Electron 应用。当前接受以下主线代�
 
 请使用 GitHub 仓库的 **Report a vulnerability** 私密入口提交，不要先创建公开 Issue，也不要在修复可用前公开利用细节：
 
-[向 TheSyart/emperor-agent 私密报告漏洞](https://github.com/TheSyart/emperor-agent/security/advisories/new)
+[向本项目私密报告漏洞](https://github.com/jtjjyy/xiaojin-agent-showcase/security/advisories/new)
 
 报告尽量包含：
 
@@ -40,7 +40,7 @@ Emperor Agent 是本地单用户 Electron 应用。当前接受以下主线代�
 报告中不要上传：
 
 - API key、token、cookie、MCP 凭证或环境变量；
-- 完整 Emperor Home（默认 `~/.emperor`）、`model_config.json`、`mcp_config.json` 或 `.env`；
+- 完整应用数据目录（默认 `~/.emperor`）、`model_config.json`、`mcp_config.json` 或 `.env`；
 - 私人对话、附件、项目源码或未经授权的第三方数据；
 - 未脱敏的 HOME、用户名、绝对路径和组织内部地址。
 

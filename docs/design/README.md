@@ -5,7 +5,7 @@
 > 最后核验：2026-09-29<br>
 > 事实源：`desktop/src/renderer/src/theme/`、`desktop/src/renderer/src/style-audit.test.ts`、`desktop/src/renderer/src/feature-style-owners.json`、`assets/generated/`
 
-本目录集中维护 Emperor Agent 的设计规范，包括品牌与图形资源、界面主题与样式、插件 Logo 等。系统怎样运转见[架构文档](../architecture/overview.md)，怎样开发和扩展见[开发指南](../development/README.md)；根目录 README 只链接到这里，不复制规范正文。
+本目录集中维护小金 Agent 的设计规范，包括品牌与图形资源、界面主题与样式、插件 Logo 等。系统怎样运转见[架构文档](../architecture/overview.md)，怎样开发和扩展见[开发指南](../development/README.md)；根目录 README 只链接到这里，不复制规范正文。
 
 ## 规范列表
 

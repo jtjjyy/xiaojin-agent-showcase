@@ -68,7 +68,7 @@ Publish job 会重新验证 contract、checksums 和 attestations，先创建 dr
 5. 使用下面的命令验证构建来源；`<file>` 替换为实际资产：
 
    ```bash
-   gh attestation verify <file> --repo TheSyart/emperor-agent
+   gh attestation verify <file> --repo <owner>/<repo>
    ```
 
 6. README 的 Releases 入口能到达当前 Pre-release，且没有写死某个 Preview 版本。
@@ -77,7 +77,7 @@ Attestation 证明 GitHub workflow 的来源和完整性，不等于 Apple Devel
 
 ## 首次启动与恢复验收
 
-Release 首次启动先验证 `resources/runtime-defaults` manifest，再初始化 Emperor Home；不自动联网、不自动安装 Skill，也不扫描其他 Agent 的目录。正常初始化不显示额外向导。打包验收至少覆盖：
+Release 首次启动先验证 `resources/runtime-defaults` manifest，再初始化应用数据目录；不自动联网、不自动安装 Skill，也不扫描其他 Agent 的目录。正常初始化不显示额外向导。打包验收至少覆盖：
 
 - 创建 user Skills、session scratch/tool-results 与 `environment/data` 骨架，并在 CoreHost 启动后启用 Skill watcher；
 - Node 本地 TLS fixture 验证显式 CA 优先、平台 CA fallback 与代理变量继承，严禁关闭 TLS 校验；

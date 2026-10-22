@@ -234,12 +234,12 @@ export function createRecoveryHtml(payload: RecoveryPayload): string {
     <p class="message" id="message"></p>
     <code class="code" id="code"></code>
     <dl>
-      <div class="row"><dt>Emperor Home</dt><dd id="home"></dd></div>
+      <div class="row"><dt>数据目录</dt><dd id="home"></dd></div>
       <div class="row" id="legacy-row"><dt>旧数据目录</dt><dd id="legacy"></dd></div>
     </dl>
     <div class="actions">
       <button class="primary" id="retry" type="button">重试初始化</button>
-      <button id="open-home" type="button">打开 Emperor Home</button>
+      <button id="open-home" type="button">打开数据目录</button>
       <button id="open-legacy" type="button">打开旧目录</button>
       <button class="exit" id="exit" type="button">退出</button>
     </div>
@@ -284,12 +284,12 @@ function stableRecoveryCode(error: unknown): string {
 function recoveryCopy(code: string): { title: string; message: string } {
   if (code === 'installation_layout_newer')
     return {
-      title: 'Emperor Home 版本过新',
-      message: '当前版本无法安全写入这个 Emperor Home。请升级应用或退出。',
+      title: '数据目录版本过新',
+      message: '当前版本无法安全写入这个数据目录。请升级应用或退出。',
     }
   if (code === 'installation_lock_busy')
     return {
-      title: 'Emperor Home 正在被使用',
+      title: '数据目录正在被使用',
       message: '另一个初始化进程持有数据目录锁。关闭其他实例后重试。',
     }
   if (code === 'runtime_manifest_invalid')
@@ -299,17 +299,17 @@ function recoveryCopy(code: string): { title: string; message: string } {
     }
   if (code === 'installation_invalid_state')
     return {
-      title: 'Emperor Home 状态无效',
+      title: '数据目录状态无效',
       message: '安装状态文件无法安全读取。打开目录检查，或退出后恢复备份。',
     }
   if (code === 'installation_io')
     return {
-      title: '无法初始化 Emperor Home',
+      title: '无法初始化数据目录',
       message: '数据目录不可写或迁移未完成。修复目录权限后重试。',
     }
   return {
     title: 'XiaoJin Agent 无法启动',
-    message: 'Core 初始化未完成。可以重试，或打开 Emperor Home 查看诊断数据。',
+    message: 'Core 初始化未完成。可以重试，或打开数据目录查看诊断数据。',
   }
 }
 

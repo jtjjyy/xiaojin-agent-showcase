@@ -1,4 +1,4 @@
-# Emperor Agent {{tag}} · UNSIGNED-PREVIEW / 未签名预览版
+# 小金 Agent {{tag}} · UNSIGNED-PREVIEW / 未签名预览版
 
 > 文档状态：Active<br>
 > 面向读者：安装 Preview 的用户<br>
@@ -16,14 +16,14 @@ This public preview is for testing and is not a Stable release. The macOS files 
 
 1. 只从本仓库对应的 GitHub Pre-release 下载。
 2. 使用 `SHA256SUMS.txt` 核对每个文件。
-3. 可使用 `gh attestation verify <file> --repo TheSyart/emperor-agent` 验证 GitHub 构建来源。
+3. 可使用 `gh attestation verify <file> --repo <owner>/<repo>` 验证 GitHub 构建来源。
 4. Attestation 只证明构建来源和完整性，不代表 Apple/Microsoft 发布者签名，也不会把本版本变成 Stable。
 
 ## macOS 单应用确认 / Per-app confirmation
 
-先把 Emperor Agent 拖到「应用程序」文件夹再打开：直接在下载位置运行时，macOS 会把它放到随机路径运行，电脑操作的授权每次启动都要重来。首次打开并看到系统拦截后，确认 SHA-256 无误，再进入 **System Settings → Privacy & Security → Open Anyway**，仅为 Emperor Agent 创建例外。Apple 的风险说明与官方步骤见 [Safely open apps on your Mac](https://support.apple.com/en-us/102445)。不要更改整机 Gatekeeper 安全策略。
+先把小金 Agent 拖到「应用程序」文件夹再打开：直接在下载位置运行时，macOS 会把它放到随机路径运行，电脑操作的授权每次启动都要重来。首次打开并看到系统拦截后，确认 SHA-256 无误，再进入 **System Settings → Privacy & Security → Open Anyway**，仅为小金 Agent 创建例外。Apple 的风险说明与官方步骤见 [Safely open apps on your Mac](https://support.apple.com/en-us/102445)。不要更改整机 Gatekeeper 安全策略。
 
-Move Emperor Agent to the Applications folder before opening it: launched from the download location, macOS runs it from a random path and computer use permissions have to be granted again at every launch. After the first blocked launch, verify the SHA-256 digest, then use **System Settings → Privacy & Security → Open Anyway** to create an exception only for Emperor Agent. Keep system-wide Gatekeeper protections enabled.
+Move XiaoJin Agent to the Applications folder before opening it: launched from the download location, macOS runs it from a random path and computer use permissions have to be granted again at every launch. After the first blocked launch, verify the SHA-256 digest, then use **System Settings → Privacy & Security → Open Anyway** to create an exception only for XiaoJin Agent. Keep system-wide Gatekeeper protections enabled.
 
 ## macOS 电脑操作 / Computer use on macOS
 

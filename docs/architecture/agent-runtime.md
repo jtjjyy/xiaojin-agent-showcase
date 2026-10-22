@@ -5,11 +5,11 @@
 > 最后核验：2026-09-22<br>
 > 事实源：`packages/core/src/harness/host/host.ts`、`packages/core/src/harness/agent/`、`packages/core/src/session-log/`、`packages/core/src/llm/`、`packages/core/src/harness/compaction/`、`packages/core/src/mcp/`、`packages/core/src/skills/`
 
-Emperor 的 Agent 内核是 `packages/core/src/harness/` 下的纯 TypeScript 实现，采用 deepseek-harness standard 模式的语义，但不含插件框架：各子系统在 `HarnessHost.compose()` 中把自己的处理函数压入有序的 middleware 数组。`HarnessHost` 是唯一组合根，每个 session 持有一个 `Agent`。
+小金 Agent 的内核是 `packages/core/src/harness/` 下的纯 TypeScript 实现，采用 deepseek-harness standard 模式的语义，但不含插件框架：各子系统在 `HarnessHost.compose()` 中把自己的处理函数压入有序的 middleware 数组。`HarnessHost` 是唯一组合根，每个 session 持有一个 `Agent`。
 
 ## 组合根
 
-`HarnessHost.create()` 先通过 `createKeptServices()` 建立保留服务（Emperor Home bootstrap、session 索引、Memory、Projects、环境探测、Skills、Scheduler、MCP、进程运行时、模型配置），再组合内核：
+`HarnessHost.create()` 先通过 `createKeptServices()` 建立保留服务（应用数据目录 bootstrap、session 索引、Memory、Projects、环境探测、Skills、Scheduler、MCP、进程运行时、模型配置），再组合内核：
 
 | 组件                              | 位置                           |
 | --------------------------------- | ------------------------------ |
@@ -139,5 +139,5 @@ Post-execute 固定包含重复调用提醒（相同工具与参数连续出现�
 
 - 新 middleware：在 `harness/agent/middleware.ts` 的对应数组登记，并在 `HarnessHost.compose()` 中按顺序压入。
 - 新 session 事件类型：通过 `declare module '../../session-log/types'` 扩展 `SessionEventMap`，需要界面可见时同步 `harness/projection/`。
-- 新工具：见[扩展 Emperor Agent](../development/extending-emperor.md#新工具)。
+- 新工具：见[扩展小金 Agent](../development/extending-emperor.md#新工具)。
 - 改变压缩、修复或 fork 语义时，同步 session-log 与 compaction 的测试。

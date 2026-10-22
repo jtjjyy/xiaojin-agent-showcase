@@ -71,6 +71,6 @@ export function controlOverlayHtml(target: ControlOverlayTarget): string {
     .stop:focus-visible { outline: 2px solid #d6ac5c; outline-offset: 2px; }
   </style>
 </head>
-<body><main class="bar" aria-label="Emperor 电脑操作状态"><span class="dot" aria-hidden="true"></span><span class="label"><span class="heading">Emperor 正在操作 ${title}</span><span class="detail">随时可停止${suffix}</span></span><a class="stop" role="button" href="emperor-overlay://stop">停止</a></main></body>
+<body><main class="bar" aria-label="小金 Agent 电脑操作状态"><span class="dot" aria-hidden="true"></span><span class="label"><span class="heading">小金 Agent 正在操作 ${title}</span><span class="detail">随时可停止${suffix}</span></span><a class="stop" role="button" href="emperor-overlay://stop">停止</a></main></body>
 </html>`
 }

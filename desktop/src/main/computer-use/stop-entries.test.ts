@@ -53,6 +53,6 @@ describe('emergency stop entries', () => {
       label: '电脑操作已停止（在设置中恢复）',
       enabled: false,
     })
-    expect(items[1]!.label).toBe('显示 Emperor')
+    expect(items[1]!.label).toBe('显示小金 Agent')
   })
 })

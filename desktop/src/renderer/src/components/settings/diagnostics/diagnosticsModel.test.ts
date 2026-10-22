@@ -305,7 +305,7 @@ describe('diagnostics settings model', () => {
       path: '/repo',
     })
     expect(rows.find((row) => row.id === 'global-state-root')).toMatchObject({
-      label: 'Emperor Home',
+      label: '数据目录',
       value: '默认 ~/.emperor',
       detail: '/Users/me/.emperor-agent',
       path: '/Users/me/.emperor-agent',
@@ -679,7 +679,7 @@ describe('diagnostics settings model', () => {
     expect(
       paths.rows.find((row) => row.id === 'global-state-root'),
     ).toMatchObject({
-      label: 'Emperor Home',
+      label: '数据目录',
       detail: '~/.emperor',
       path: '/Users/me/.emperor',
     })

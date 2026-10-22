@@ -34,7 +34,7 @@ export function computerUseHeadline(
     return {
       tone: 'neutral',
       badge: '不可用',
-      description: '电脑操作需要 Emperor 桌面应用',
+      description: '电脑操作需要小金 Agent 桌面应用',
     }
   if (!status.enabled)
     return {
@@ -87,7 +87,7 @@ const DRIVER_OFF: Readonly<Record<DriverCapability['driver'], string>> = {
   'embedded-browser': '内置浏览器控制已关闭；Agent 调用时会收到「能力未启用」',
   'external-browser':
     'Chrome/Edge 标签页控制已关闭；Agent 调用时会收到「能力未启用」',
-  desktop: 'Emperor 内建桌面控制已关闭',
+  desktop: '小金 Agent 内建桌面控制已关闭',
 }
 
 export function driverRows(status: ComputerUseStatusView | null): DriverRow[] {

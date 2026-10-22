@@ -212,7 +212,7 @@ describe('trusted release configuration', () => {
     ) as { author?: string; homepage?: string }
 
     expect(metadata.author).toBe('XiaoJin Agent maintainers')
-    expect(metadata.homepage).toBe('https://github.com/TheSyart/emperor-agent')
+    expect(metadata.homepage).toBe('https://github.com/jtjjyy/xiaojin-agent-showcase')
   })
 
   it('builds once on Ubuntu 22.04 and smokes on Ubuntu 22.04 and 24.04', () => {

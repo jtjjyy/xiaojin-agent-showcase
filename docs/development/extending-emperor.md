@@ -1,11 +1,11 @@
-# 扩展 Emperor Agent
+# 扩展小金 Agent
 
 > 文档状态：Active<br>
 > 面向读者：Core、Electron 与 renderer 开发者<br>
 > 最后核验：2026-09-23<br>
 > 事实源：`packages/core/src/harness/host/host.ts`、`packages/core/src/api/operations.ts`、`packages/core/src/harness/projection/`、`packages/core/src/llm/`、`packages/core/src/harness/tools/builtin/`、`desktop/src/renderer/src/router.ts`、`desktop/src/renderer/src/shortcuts.ts`、`desktop/src/renderer/src/components/pages/`、`desktop/src/renderer/src/components/workspace/`、`desktop/src/renderer/src/components/settings/`
 
-Emperor Agent 的扩展通常横跨内核、CoreApi、Electron contract、renderer 投影和文档。先确定权威状态属于哪里：会话内的一切属于 session log；长期数据属于对应的保留服务。然后从内核或服务向外接入，不要把策略散落到组件或 prompt 文案。
+小金 Agent 的扩展通常横跨内核、CoreApi、Electron contract、renderer 投影和文档。先确定权威状态属于哪里：会话内的一切属于 session log；长期数据属于对应的保留服务。然后从内核或服务向外接入，不要把策略散落到组件或 prompt 文案。
 
 ## 通用顺序
 
@@ -44,7 +44,7 @@ MCP 工具不需要注册代码：`McpToolBridge` 会把每个已连接 server �
 
 ### 修改应用配置的工具
 
-修改的是 Emperor 自己的配置或数据（而不是 workspace 文件）时，参照 `skill_manage`（`harness/tools/builtin/skill-manage.ts`）和 `mcp_config`（`harness/tools/builtin/mcp-config.ts`）：
+修改的是小金 Agent 自己的配置或数据（而不是 workspace 文件）时，参照 `skill_manage`（`harness/tools/builtin/skill-manage.ts`）和 `mcp_config`（`harness/tools/builtin/mcp-config.ts`）：
 
 - 写入逻辑放在领域模块，与 CoreApi 服务共用（`skills/library.ts`、`mcp/manage.ts`），工具只做参数映射和结果格式化，不复制校验或合并规则。
 - 审批跟随权限预设：通过工厂注入 `SandboxPolicyService` 与 `ApprovalService`，写入前按当前 session 的沙箱模式判断，`danger-full-access` 直接执行，其他模式调用 `ApprovalService.request({ agent, toolName, callId, reason, signal })`，只有 `allowed-once` 才继续；`rejected`、`cancelled`、`unavailable` 和缺少审批通道都抛出 `ToolError`。`reason` 写成用户能看懂的一句话，说明要改哪个文件或对象。

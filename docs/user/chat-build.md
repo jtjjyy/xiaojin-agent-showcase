@@ -25,7 +25,7 @@ Chat 适合问答、整理资料、解释内容和不依赖固定项目的轻量
 - 用户档案 `USER.local.md` 与全局长期记忆 `MEMORY.local.md`；
 - 当前会话的历史、附件和工具结果。
 
-Chat 的工作目录是 Emperor Home 下的 `workspace/`，Agent 在这里创建的文件不会落到你的项目里。Chat 不会读取任何 Build 项目的私有记忆。
+Chat 的工作目录是应用数据目录下的 `workspace/`，Agent 在这里创建的文件不会落到你的项目里。Chat 不会读取任何 Build 项目的私有记忆。
 
 ## Build
 
@@ -60,7 +60,7 @@ Build 绑定一个本地文件夹。Agent 在该目录内读取文件、按当�
 Build 会话显示项目的 Git 信息：
 
 - **变更**：当前工作区的 +A −D，点击打开「审查」；
-- **本地 / Worktree**：切换回项目目录，或新建、退出、安全删除 Emperor 托管的 worktree；
+- **本地 / Worktree**：切换回项目目录，或新建、退出、安全删除小金 Agent 托管的 worktree；
 - **分支**：查看并切换分支；
 - **提交或推送**：打开「审查」并把焦点放到提交框；
 - **比较分支 ↗**：远端 `origin` 是 GitHub 或 GitLab 时，在系统浏览器中打开当前分支与默认分支的比较页；没有 `origin`、远端不是这两者、不在分支上或当前就是默认分支时，这一行说明原因。
@@ -110,7 +110,7 @@ Build 会话显示项目的 Git 信息：
 
 不可用的面板在启动器中置灰并说明原因（「当前会话未绑定项目」或「当前项目未初始化 Git」）。再次按同一面板的快捷键会关闭工作台。
 
-- **审查**：按 staged、unstaged、untracked 和 conflict 查看 Diff；执行 stage、unstage、discard、commit、fetch、fast-forward pull、push、建分支、切分支和分支比较；创建或退出 Emperor 托管的 worktree；预览、发布、转 Ready、合并或关闭当前分支 PR。写操作携带 revision，外部改动导致状态过期时拒绝旧操作并刷新。PR 操作依赖通过签名工具目录审核且已登录的 GitHub CLI（`gh`），见[诊断与排障](diagnostics-troubleshooting.md#github-cligh)。
+- **审查**：按 staged、unstaged、untracked 和 conflict 查看 Diff；执行 stage、unstage、discard、commit、fetch、fast-forward pull、push、建分支、切分支和分支比较；创建或退出小金 Agent 托管的 worktree；预览、发布、转 Ready、合并或关闭当前分支 PR。写操作携带 revision，外部改动导致状态过期时拒绝旧操作并刷新。PR 操作依赖通过签名工具目录审核且已登录的 GitHub CLI（`gh`），见[诊断与排障](diagnostics-troubleshooting.md#github-cligh)。
 - **终端**：在当前项目目录启动你的系统 Shell，支持多个标签。关闭工作台不结束终端；关闭标签、删除所属 session 或退出应用才会终止，重启后不恢复。
 - **文件**：顶部是已打开文件的标签条（「+」新开一个标签），中间是路径和预览，最右侧是项目文件树，树顶部的「筛选文件…」按文件名搜索。支持 Markdown 渲染与源码切换、行号和图片预览；焦点在文件面板内时，⌘W 关闭当前文件标签。`.git` 不展示，目录与搜索都有扫描上限，文件树宽度会被记住。
 - **浏览器**：在地址栏输入网址并回车后才会加载，提供后退、前进、刷新 / 停止和「在外部打开」。限制见下文。
@@ -172,7 +172,7 @@ Composer 输入 `/` 后显示 Core 返回的命令和 active Skill，分为 `Com
 左侧会话栏从上到下是：
 
 - 收起按钮与后退 / 前进；
-- Emperor 标志与名称（只展示）、搜索和通知铃铛；
+- 小金 Agent 标志与名称（只展示）、搜索和通知铃铛；
 - 「新对话」和它右侧的 `+`（在已有项目中新建会话，或「选择项目文件夹…」新建 Build），以及「Pull Request」「定时任务」「能力」「探索」四个整页入口；
 - 「置顶」「项目」「对话」三组会话：「项目」按项目列出 Build 会话，「对话」按日期列出 Chat 会话；
 - 底部的「设置」和明暗切换按钮；收起后的窄轨同样保留这两个按钮。

@@ -1,20 +1,20 @@
 # 首次使用
 
 > 文档状态：Active<br>
-> 面向读者：第一次安装和配置 Emperor Agent 的用户<br>
+> 面向读者：第一次安装和配置小金 Agent 的用户<br>
 > 最后核验：2026-09-23<br>
 > 事实源：GitHub Releases、模型设置页、`desktop/src/renderer/src/components/sidebar/`（新对话与项目会话入口）
 
 ## 1. 安装
 
-1. 打开项目的 [GitHub Releases](https://github.com/TheSyart/emperor-agent/releases)。
-2. 根据操作系统和 CPU 架构选择 macOS、Windows 或 Linux 安装包。
-3. 当前公开包是未签名 Preview，不是 Stable。校验摘要、GitHub 构建来源和系统提示的方法见[未签名 Preview 安全说明](../release/unsigned-preview-notice.md)。
-4. 安装并启动应用。安装包已经包含 Electron/Node runtime，不需要另外安装 Node.js 或 Python。首次启动会离线创建 Emperor Home、校验只读 runtime 并恢复中断的安装账本；正常完成时不显示额外向导。
+1. 本仓库当前以源码方式发布，不提供正式安装包；如需体验，按 [README 的源码运行说明](../../README.md#-快速开始) 启动开发版。
+2. 如果后续提供预览安装包，会发布在 [GitHub Releases](https://github.com/jtjjyy/xiaojin-agent-showcase/releases)；请核对来源与摘要。
+3. 预览包是未签名 Preview，不是 Stable。校验摘要、GitHub 构建来源和系统提示的方法见[未签名 Preview 安全说明](../release/unsigned-preview-notice.md)。
+4. 安装并启动应用。安装包已经包含 Electron/Node runtime，不需要另外安装 Node.js 或 Python。首次启动会离线创建应用数据目录、校验只读 runtime 并恢复中断的安装账本；正常完成时不显示额外向导。
 
-如果首次启动进入恢复页，按稳定错误码处理：可以重试、打开 Emperor Home 或退出。布局版本过新表示当前应用版本不能安全写入该目录，应升级应用；不要手工降低 `installation.json` 的版本号。
+如果首次启动进入恢复页，按稳定错误码处理：可以重试、打开应用数据目录或退出。布局版本过新表示当前应用版本不能安全写入该目录，应升级应用；不要手工降低 `installation.json` 的版本号。
 
-没有公开安装包或不希望运行未签名版本时，可以按 [README 的源码运行说明](../../README.md#source) 启动开发版。
+没有公开安装包或不希望运行未签名版本时，可以按 [README 的源码运行说明](../../README.md#-快速开始) 启动开发版。
 
 ## 2. 添加并选择模型
 
@@ -37,7 +37,7 @@
 
 ### Chat：普通对话
 
-点击侧栏的「新对话」（⌘N），输入问题并发送。Chat 使用用户档案、全局长期记忆和当前会话历史，不绑定项目目录；需要写文件时，它的工作目录是 Emperor Home 下的 `workspace/`。
+点击侧栏的「新对话」（⌘N），输入问题并发送。Chat 使用用户档案、全局长期记忆和当前会话历史，不绑定项目目录；需要写文件时，它的工作目录是应用数据目录下的 `workspace/`。
 
 ### Build：项目工作
 
@@ -58,7 +58,7 @@
 
 ## 5. 数据与联网
 
-会话、记忆、模型配置和附件保存在本机；默认 Emperor Home 是 `~/.emperor`。以下操作仍会把必要内容发送到外部：
+会话、记忆、模型配置和附件保存在本机；默认应用数据目录是 `~/.emperor`。以下操作仍会把必要内容发送到外部：
 
 - 调用已配置的模型 Provider；
 - 使用远程 MCP，或调用会联网的 Skill；

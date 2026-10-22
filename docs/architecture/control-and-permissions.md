@@ -31,7 +31,7 @@ Agent 能做什么由两个独立旋钮决定：**沙箱模式**限制文件写�
 
 - `write` / `edit` 在进程内做路径围栏：`read-only` 直接拒绝；`workspace-write` 在写入前重新解析真实路径（能发现被替换的符号链接祖先），要求目标位于可写根内。
 - `bash` 在受限模式下通过 OS 沙箱运行：macOS 使用 Seatbelt（`sandbox-exec`），Linux 使用 bubblewrap（启动时做一次功能探测）。其他平台没有后端，`read-only` 与 `workspace-write` 下的 `bash` 在启动前失败（fail closed），只有 `danger-full-access` 才会执行 Shell。
-- 受限 `bash` 主要限制文件写入。macOS Seatbelt 还拒读 Emperor 的电脑操作状态与浏览器数据，并拒绝向 Apple Events、WindowServer 和 Helper socket 发起部分连接；普通文件读取与互联网访问没有普遍禁止。`read`、`glob`、`grep` 不经过该 Shell 沙箱。
+- 受限 `bash` 主要限制文件写入。macOS Seatbelt 还拒读小金 Agent 的电脑操作状态与浏览器数据，并拒绝向 Apple Events、WindowServer 和 Helper socket 发起部分连接；普通文件读取与互联网访问没有普遍禁止。`read`、`glob`、`grep` 不经过该 Shell 沙箱。
 - `memory_edit`、`scheduler`、MCP 工具与 Skill 加载不经过文件沙箱，也不需要审批；Memory 是应用状态，MCP server 的能力由其配置决定。
 - `skill_manage`（Skills 文件夹）与 `mcp_config`（`mcp_config.json`）同样不经过文件沙箱，但写入动作跟随权限预设：沙箱模式为 `danger-full-access` 时直接执行，其他模式下每次写入都通过 `ApprovalService` 询问一次，审批策略为 `never` 时被拒绝。查看类动作（`list`、`validate`、`reload`）不询问。
 

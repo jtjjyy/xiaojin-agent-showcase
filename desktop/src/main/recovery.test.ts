@@ -20,8 +20,8 @@ describe('bootstrap recovery surface', () => {
     expect(payload).toEqual({
       schemaVersion: 1,
       errorCode: 'installation_layout_newer',
-      title: 'Emperor Home 版本过新',
-      message: '当前版本无法安全写入这个 Emperor Home。请升级应用或退出。',
+      title: '数据目录版本过新',
+      message: '当前版本无法安全写入这个数据目录。请升级应用或退出。',
       emperorHome: '/Users/tester/.emperor',
       legacyHome: '/Users/tester/.emperor-agent',
       canRetry: true,

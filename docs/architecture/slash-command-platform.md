@@ -5,7 +5,7 @@
 > 最后核验：2026-09-22<br>
 > 事实源：`packages/core/src/commands/`、`packages/core/src/api/services/command-application-service.ts`、CoreApi `commands.*`、`desktop/src/renderer/src/composables/useSlashCommands.ts`
 
-Emperor 的斜杠命令由 Core 注册、解析、校验和调度。Renderer 只展示候选、补全参数、打开界面并投影结果；它不能提供 handler、Skill 路径、来源或工具范围。
+小金 Agent 的斜杠命令由 Core 注册、解析、校验和调度。Renderer 只展示候选、补全参数、打开界面并投影结果；它不能提供 handler、Skill 路径、来源或工具范围。
 
 ## 命令类别
 
@@ -109,7 +109,7 @@ metadata:
 
 fork 命令不接受附件。`agent` 字段已无对应的 Agent 定义，会被忽略并在 Diagnostics 的 `commandCatalog.warnings` 中提示；内联命令上的 `allowed_tools` / `effort` 同样只产生 warning。
 
-Token 默认由 Skill 名称规范化为小写 kebab-case；显式 `name` 时以其为准。同一 token 按 `project > user > plugin > built-in` 取最高优先级；与内置命令冲突的 Skill 不注册入口，冲突摘要出现在 Diagnostics 的 `commandCatalog` 中。Emperor 不提供 `/skill`、`/skills` 等中转语法，也不扫描 `.emperor/commands/`。
+Token 默认由 Skill 名称规范化为小写 kebab-case；显式 `name` 时以其为准。同一 token 按 `project > user > plugin > built-in` 取最高优先级；与内置命令冲突的 Skill 不注册入口，冲突摘要出现在 Diagnostics 的 `commandCatalog` 中。小金 Agent 不提供 `/skill`、`/skills` 等中转语法，也不扫描 `.emperor/commands/`。
 
 ## Renderer 投影
 

@@ -37,7 +37,7 @@ export function stopMenuItems(
     state.stopped
       ? { label: '电脑操作已停止（在设置中恢复）', enabled: false }
       : { label: '停止电脑操作', enabled: true, click: actions.stop },
-    { label: '显示 Emperor', enabled: true, click: actions.showApp },
+    { label: '显示小金 Agent', enabled: true, click: actions.showApp },
   ]
 }
 
@@ -72,7 +72,7 @@ export function createStopEntries(
       if (state.shortcutRegistered) hideTray()
       else {
         trayShown = true
-        host.showTray(items, 'Emperor 电脑操作：快捷键不可用，可从这里停止')
+        host.showTray(items, '小金 Agent 电脑操作：快捷键不可用，可从这里停止')
       }
     },
     dispose() {

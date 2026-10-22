@@ -1371,7 +1371,7 @@ for (const theme of ['dark', 'light'] as const) {
     ).toHaveAttribute('aria-checked', 'true')
     await dialog.locator('#computer-use-driver-desktop').click()
     await expect(dialog.locator('[data-driver="desktop"]')).toContainText(
-      'Emperor 内建桌面控制已关闭',
+      '小金 Agent 内建桌面控制已关闭',
     )
     // Narrow a grant one action at a time.
     await dialog.getByRole('button', { name: '不再允许操作' }).first().click()
